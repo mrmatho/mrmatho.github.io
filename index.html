@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mrmatho - Projects & Resources</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        main {
+            padding: 40px 30px;
+        }
+        
+        .section {
+            margin-bottom: 50px;
+        }
+        
+        .section h2 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .projects {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+        
+        .project-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .project-card h3 {
+            font-size: 1.4em;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .project-card h3 a {
+            color: #667eea;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        .project-card h3 a:hover {
+            color: #764ba2;
+        }
+        
+        .project-card p {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 0.95em;
+        }
+        
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .tech-tag {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+        }
+        
+        .live-demo {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 0.9em;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+        
+        .live-demo:hover {
+            background: #218838;
+        }
+        
+        footer {
+            background: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        footer a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        footer a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2em;
+            }
+            
+            .projects {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>mrmatho.github.io</h1>
+            <p>Educational Projects, Interactive Tools & Teaching Resources</p>
+        </header>
+        
+        <main>
+            <section class="section">
+                <h2>🎮 Interactive Games & Tools</h2>
+                <div class="projects">
+                    <div class="project-card">
+                        <h3><a href="https://github.com/mrmatho/crop" target="_blank">Crop Rotation Game</a></h3>
+                        <p>A simulation game where players manage crop rotation on multiple fields to maximize food production while maintaining soil fertility. Built with HTML/CSS/JavaScript, playable directly in the browser.</p>
+                        <a href="https://mrmatho.github.io/crop/" class="live-demo" target="_blank">▶ Play Game</a>
+                        <div class="tech-stack">
+                            <span class="tech-tag">HTML</span>
+                            <span class="tech-tag">CSS</span>
+                            <span class="tech-tag">JavaScript</span>
+                        </div>
+                    </div>
+                    
+                    <div class="project-card">
+                        <h3><a href="https://github.com/mrmatho/CubeFlyer" target="_blank">CubeFlyer</a></h3>
+                        <p>A 3D JavaScript game built with Babylon.JS where you fly a cube through obstacles. Created as part of MLH Global Hack Week: GAMES to help introduce developers to Open Source.</p>
+                        <div class="tech-stack">
+                            <span class="tech-tag">JavaScript</span>
+                            <span class="tech-tag">Babylon.JS</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="section">
+                <h2>📚 Teaching & Educational Resources</h2>
+                <div class="projects">
+                    <div class="project-card">
+                        <h3><a href="https://github.com/mrmatho/7dt-slides" target="_blank">7dt-slides</a></h3>
+                        <p>Teaching site with slides for topics including Micro:bit, Python, and Cybersecurity. Content is authored in Markdown and enhanced with Vue components.</p>
+                        <div class="tech-stack">
+                            <span class="tech-tag">Slidev</span>
+                            <span class="tech-tag">Vue</span>
+                            <span class="tech-tag">Markdown</span>
+                        </div>
+                    </div>
+                    
+                    <div class="project-card">
+                        <h3><a href="https://github.com/mrmatho/da-slides" target="_blank">da-slides</a></h3>
+                        <p>Data Analysis teaching slides built with Slidev. An interactive presentation framework for technical content.</p>
+                        <div class="tech-stack">
+                            <span class="tech-tag">Slidev</span>
+                            <span class="tech-tag">Vue</span>
+                            <span class="tech-tag">CSS</span>
+                        </div>
+                    </div>
+                    
+                    <div class="project-card">
+                        <h3><a href="https://github.com/mrmatho/sd-slides" target="_blank">sd-slides</a></h3>
+                        <p>Software Development teaching slides using Slidev framework. Educational content delivered through interactive presentations.</p>
+                        <div class="tech-stack">
+                            <span class="tech-tag">Slidev</span>
+                            <span class="tech-tag">Vue</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="section">
+                <h2>🛠️ Development Tools</h2>
+                <div class="projects">
+                    <div class="project-card">
+                        <h3><a href="https://github.com/mrmatho/mo_nbs" target="_blank">mo_nbs - Marimo Notebooks WASM Builder</a></h3>
+                        <p>A tool for building and deploying Marimo notebooks to WebAssembly, enabling interactive Python notebooks in the browser.</p>
+                        <div class="tech-stack">
+                            <span class="tech-tag">Python</span>
+                            <span class="tech-tag">Marimo</span>
+                            <span class="tech-tag">WASM</span>
+                        </div>
+                    </div>
+                    
+                    <div class="project-card">
+                        <h3><a href="https://github.com/mrmatho/batchimageresizing-omatic" target="_blank">batchimageresizing-omatic</a></h3>
+                        <p>Python tool for batch image resizing operations.</p>
+                        <div class="tech-stack">
+                            <span class="tech-tag">Python</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="section">
+                <h2>🎲 Other Projects</h2>
+                <div class="projects">
+                    <div class="project-card">
+                        <h3><a href="https://github.com/mrmatho/godot-2d-platformer" target="_blank">godot-2d-platformer</a></h3>
+                        <p>A 2D platformer game built with Godot Engine for learning game development.</p>
+                        <div class="tech-stack">
+                            <span class="tech-tag">GDScript</span>
+                            <span class="tech-tag">Godot</span>
+                        </div>
+                    </div>
+                    
+                    <div class="project-card">
+                        <h3><a href="https://github.com/mrmatho/spotting_card_game" target="_blank">spotting_card_game</a></h3>
+                        <p>Card game implementation in Python.</p>
+                        <div class="tech-stack">
+                            <span class="tech-tag">Python</span>
+                        </div>
+                    </div>
+                    
+                    <div class="project-card">
+                        <h3><a href="https://github.com/mrmatho/st-coffee-roast-tracker" target="_blank">st-coffee-roast-tracker</a></h3>
+                        <p>A Streamlit app for tracking coffee roasting sessions and profiles.</p>
+                        <div class="tech-stack">
+                            <span class="tech-tag">Python</span>
+                            <span class="tech-tag">Streamlit</span>
+                        </div>
+                    </div>
+                    
+                    <div class="project-card">
+                        <h3><a href="https://github.com/mrmatho/discord_bot_play" target="_blank">discord_bot_play</a></h3>
+                        <p>Experiments with creating Discord bots.</p>
+                        <div class="tech-stack">
+                            <span class="tech-tag">Python</span>
+                        </div>
+                    </div>
+                    
+                    <div class="project-card">
+                        <h3><a href="https://github.com/mrmatho/randomised_trialer" target="_blank">randomised_trialer</a></h3>
+                        <p>Streamlit apps to run randomised trials for probability demonstrations.</p>
+                        <div class="tech-stack">
+                            <span class="tech-tag">Python</span>
+                            <span class="tech-tag">Streamlit</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <footer>
+            <p>Find more projects and connect with me on <a href="https://github.com/mrmatho" target="_blank">GitHub</a></p>
+        </footer>
+    </div>
+</body>
+</html>
