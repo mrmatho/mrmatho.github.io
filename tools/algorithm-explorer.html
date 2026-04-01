@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Algorithm Explorer — Searching &amp; Sorting</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface2: #232736;
+  --border: #2e3347;
+  --text: #e2e4ed;
+  --text-dim: #8b8fa3;
+  --accent: #6c5ce7;
+  --accent-glow: #6c5ce740;
+  --green: #00cec9;
+  --green-glow: #00cec940;
+  --orange: #fdcb6e;
+  --orange-glow: #fdcb6e40;
+  --red: #ff6b6b;
+  --red-glow: #ff6b6b40;
+  --pink: #fd79a8;
+  --card-w: 56px;
+  --card-h: 72px;
+  --radius: 10px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── NAV ── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 28px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.topbar h1 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent), var(--green));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
+}
+
+.algo-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--bg);
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.algo-tab {
+  padding: 8px 16px;
+  border: none;
+  background: none;
+  color: var(--text-dim);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.algo-tab:hover { color: var(--text); background: var(--surface2); }
+.algo-tab.active { color: #fff; background: var(--accent); }
+
+.algo-tab[data-type="sort"] { border-left: 3px solid var(--green); }
+.algo-tab[data-type="search"] { border-left: 3px solid var(--orange); }
+.algo-tab.active[data-type="sort"] { background: var(--green); color: var(--bg); }
+.algo-tab.active[data-type="search"] { background: var(--orange); color: var(--bg); }
+
+/* ── MAIN ── */
+.main-area {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 28px;
+}
+
+/* ── MODE SWITCH ── */
+.mode-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.mode-btn {
+  padding: 10px 22px;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--text-dim);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+
+.mode-btn:hover { border-color: var(--accent); color: var(--text); }
+.mode-btn.active { border-color: var(--accent); background: var(--accent); color: #fff; }
+
+.speed-control {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.speed-control input[type=range] {
+  width: 100px;
+  accent-color: var(--accent);
+}
+
+/* ── LAYOUT ── */
+.workspace {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+}
+
+@media (max-width: 860px) {
+  .workspace { grid-template-columns: 1fr; }
+}
+
+/* ── CARDS AREA ── */
+.cards-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  min-height: 320px;
+  position: relative;
+}
+
+.cards-panel h3 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.card-rack {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  min-height: 90px;
+  align-items: flex-end;
+  padding: 8px 0;
+}
+
+.card {
+  width: var(--card-w);
+  height: var(--card-h);
+  background: var(--surface2);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  transition: all 0.35s cubic-bezier(.4,0,.2,1);
+  cursor: default;
+  position: relative;
+  user-select: none;
+}
+
+.card.highlight-a { border-color: var(--green); box-shadow: 0 0 16px var(--green-glow); background: #00cec915; }
+.card.highlight-b { border-color: var(--orange); box-shadow: 0 0 16px var(--orange-glow); background: #fdcb6e15; }
+.card.highlight-c { border-color: var(--pink); box-shadow: 0 0 16px var(--red-glow); background: #ff6b6b15; }
+.card.sorted { border-color: var(--accent); background: #6c5ce720; color: #a29bfe; }
+.card.found { border-color: var(--green); background: var(--green); color: var(--bg); transform: scale(1.15); }
+.card.dimmed { opacity: 0.3; }
+.card.selected-card { border-color: #fff; box-shadow: 0 0 20px rgba(255,255,255,0.3); transform: translateY(-8px); }
+.card.wrong { animation: shake 0.4s; border-color: var(--red); }
+
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+.card-label {
+  position: absolute;
+  top: -18px;
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--green);
+  font-weight: 600;
+}
+
+/* ── PSEUDOCODE ── */
+.code-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  overflow-y: auto;
+  max-height: 520px;
+}
+
+.code-panel h3 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.pseudo-line {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  color: var(--text-dim);
+  white-space: pre;
+  transition: all 0.25s;
+  line-height: 1.7;
+  border-left: 3px solid transparent;
+}
+
+.pseudo-line.active {
+  background: var(--accent-glow);
+  color: #fff;
+  border-left-color: var(--accent);
+}
+
+.pseudo-line .kw { color: var(--accent); }
+.pseudo-line .fn { color: var(--green); }
+.pseudo-line .cm { color: var(--text-dim); font-style: italic; }
+
+/* ── CONTROLS ── */
+.controls-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #7c6ff7; }
+.btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+.btn-secondary:hover { border-color: var(--accent); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── STATUS ── */
+.status-bar {
+  margin-top: 14px;
+  padding: 10px 16px;
+  background: var(--surface2);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+  min-height: 38px;
+}
+
+.status-bar .good { color: var(--green); }
+.status-bar .bad { color: var(--red); }
+
+/* ── PRACTICE PROMPT ── */
+.practice-prompt {
+  margin-top: 14px;
+  padding: 12px 16px;
+  background: var(--orange-glow);
+  border: 1px solid var(--orange);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--orange);
+  font-weight: 600;
+}
+
+/* ── SEARCH TARGET ── */
+.search-target {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--orange-glow);
+  border: 1px solid var(--orange);
+  border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  color: var(--orange);
+  margin-bottom: 12px;
+}
+
+/* ── PARTITION MARKERS ── */
+.partition-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.partition-marker {
+  width: var(--card-w);
+  text-align: center;
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim);
+  height: 16px;
+}
+
+/* ── INTRO OVERLAY ── */
+.algo-info {
+  padding: 12px 16px;
+  background: var(--surface2);
+  border-radius: 8px;
+  margin-bottom: 18px;
+  border-left: 3px solid var(--accent);
+}
+
+.algo-info p {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+
+.algo-info strong { color: var(--text); }
+
+/* ── SCORE ── */
+.score-display {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-top: 10px;
+}
+
+.score-display span { color: var(--green); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>&lt;/&gt; Algorithm Explorer</h1>
+  <div class="algo-tabs">
+    <button class="algo-tab active" data-type="sort" data-algo="selection">Selection Sort</button>
+    <button class="algo-tab" data-type="sort" data-algo="quick">Quick Sort</button>
+    <button class="algo-tab" data-type="search" data-algo="linear">Linear Search</button>
+    <button class="algo-tab" data-type="search" data-algo="binary">Binary Search</button>
+  </div>
+</div>
+
+<div class="main-area">
+  <div class="mode-bar">
+    <button class="mode-btn active" data-mode="demo">▶ Watch Demo</button>
+    <button class="mode-btn" data-mode="practice">✋ Practice</button>
+    <div class="speed-control" id="speedControl">
+      <label>Speed:</label>
+      <input type="range" min="1" max="5" value="3" id="speedSlider">
+    </div>
+  </div>
+
+  <div class="algo-info" id="algoInfo"></div>
+
+  <div class="workspace">
+    <div class="cards-panel">
+      <h3 id="cardsTitle">Array</h3>
+      <div id="searchTarget" class="search-target" style="display:none;"></div>
+      <div class="card-rack" id="cardRack"></div>
+      <div class="partition-row" id="partitionRow"></div>
+      <div class="controls-row" id="controls"></div>
+      <div class="status-bar" id="statusBar"></div>
+      <div class="practice-prompt" id="practicePrompt" style="display:none;"></div>
+      <div class="score-display" id="scoreDisplay" style="display:none;"></div>
+    </div>
+    <div class="code-panel">
+      <h3>Pseudocode</h3>
+      <div id="pseudocode"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+let currentAlgo = 'selection';
+let currentMode = 'demo'; // demo | practice
+let arr = [];
+let animating = false;
+let animCancel = false;
+let speed = 3;
+let practiceState = {};
+
+const $ = id => document.getElementById(id);
+
+// ═══════════════════════════════════════════
+//  PSEUDOCODE DEFINITIONS
+// ═══════════════════════════════════════════
+const pseudocodes = {
+  selection: [
+    { text: '<span class="kw">function</span> <span class="fn">selectionSort</span>(A):', id: 0 },
+    { text: '  <span class="kw">for</span> i = 0 <span class="kw">to</span> length(A) - 2:', id: 1 },
+    { text: '    minIndex = i', id: 2 },
+    { text: '    <span class="kw">for</span> j = i + 1 <span class="kw">to</span> length(A) - 1:', id: 3 },
+    { text: '      <span class="kw">if</span> A[j] < A[minIndex]:', id: 4 },
+    { text: '        minIndex = j', id: 5 },
+    { text: '    <span class="fn">swap</span> A[i] <span class="kw">and</span> A[minIndex]', id: 6 },
+    { text: '  <span class="kw">return</span> A', id: 7 },
+  ],
+  quick: [
+    { text: '<span class="kw">function</span> <span class="fn">quickSort</span>(A, lo, hi):', id: 0 },
+    { text: '  <span class="kw">if</span> lo < hi:', id: 1 },
+    { text: '    pivotIndex = <span class="fn">partition</span>(A, lo, hi)', id: 2 },
+    { text: '    <span class="fn">quickSort</span>(A, lo, pivotIndex - 1)', id: 3 },
+    { text: '    <span class="fn">quickSort</span>(A, pivotIndex + 1, hi)', id: 4 },
+    { text: '', id: -1 },
+    { text: '<span class="kw">function</span> <span class="fn">partition</span>(A, lo, hi):', id: 5 },
+    { text: '  pivot = A[hi]', id: 6 },
+    { text: '  i = lo - 1', id: 7 },
+    { text: '  <span class="kw">for</span> j = lo <span class="kw">to</span> hi - 1:', id: 8 },
+    { text: '    <span class="kw">if</span> A[j] <= pivot:', id: 9 },
+    { text: '      i = i + 1', id: 10 },
+    { text: '      <span class="fn">swap</span> A[i] <span class="kw">and</span> A[j]', id: 11 },
+    { text: '  <span class="fn">swap</span> A[i+1] <span class="kw">and</span> A[hi]', id: 12 },
+    { text: '  <span class="kw">return</span> i + 1', id: 13 },
+  ],
+  linear: [
+    { text: '<span class="kw">function</span> <span class="fn">linearSearch</span>(A, target):', id: 0 },
+    { text: '  <span class="kw">for</span> i = 0 <span class="kw">to</span> length(A) - 1:', id: 1 },
+    { text: '    <span class="kw">if</span> A[i] == target:', id: 2 },
+    { text: '      <span class="kw">return</span> i  <span class="cm">// found!</span>', id: 3 },
+    { text: '  <span class="kw">return</span> -1  <span class="cm">// not found</span>', id: 4 },
+  ],
+  binary: [
+    { text: '<span class="kw">function</span> <span class="fn">binarySearch</span>(A, target):', id: 0 },
+    { text: '  lo = 0', id: 1 },
+    { text: '  hi = length(A) - 1', id: 2 },
+    { text: '  <span class="kw">while</span> lo <= hi:', id: 3 },
+    { text: '    mid = (lo + hi) / 2  <span class="cm">// integer division</span>', id: 4 },
+    { text: '    <span class="kw">if</span> A[mid] == target:', id: 5 },
+    { text: '      <span class="kw">return</span> mid  <span class="cm">// found!</span>', id: 6 },
+    { text: '    <span class="kw">else if</span> A[mid] < target:', id: 7 },
+    { text: '      lo = mid + 1', id: 8 },
+    { text: '    <span class="kw">else</span>:', id: 9 },
+    { text: '      hi = mid - 1', id: 10 },
+    { text: '  <span class="kw">return</span> -1  <span class="cm">// not found</span>', id: 11 },
+  ],
+};
+
+const algoDescriptions = {
+  selection: `<strong>Selection Sort</strong> finds the <strong>smallest</strong> unsorted element each pass and swaps it into its correct position. It divides the array into a sorted portion (left) and unsorted portion (right). Time complexity: <strong>O(n²)</strong>.`,
+  quick: `<strong>Quick Sort</strong> picks a <strong>pivot</strong> element, then partitions the array so everything smaller goes left and everything larger goes right. It recursively sorts each partition. Average time: <strong>O(n log n)</strong>.`,
+  linear: `<strong>Linear Search</strong> checks each element <strong>one by one</strong> from left to right until it finds the target or reaches the end. Works on any list. Time complexity: <strong>O(n)</strong>.`,
+  binary: `<strong>Binary Search</strong> works on a <strong>sorted</strong> array. It repeatedly checks the middle element and eliminates half the remaining elements each step. Time complexity: <strong>O(log n)</strong>.`,
+};
+
+// ═══════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════
+function randomArray(n, max) {
+  const a = [];
+  const used = new Set();
+  while (a.length < n) {
+    const v = Math.floor(Math.random() * max) + 1;
+    if (!used.has(v)) { used.add(v); a.push(v); }
+  }
+  return a;
+}
+
+function getDelay() {
+  const delays = [1200, 900, 600, 350, 150];
+  return delays[speed - 1];
+}
+
+function wait(ms) {
+  return new Promise(r => {
+    const t = setTimeout(r, ms);
+    const check = setInterval(() => {
+      if (animCancel) { clearTimeout(t); clearInterval(check); r(); }
+    }, 50);
+  });
+}
+
+// ═══════════════════════════════════════════
+//  RENDERING
+// ═══════════════════════════════════════════
+function renderPseudocode() {
+  const lines = pseudocodes[currentAlgo];
+  $('pseudocode').innerHTML = lines.map((l, i) =>
+    `<div class="pseudo-line" data-line="${l.id}" id="pline-${i}">${l.text || '&nbsp;'}</div>`
+  ).join('');
+}
+
+function highlightLine(id) {
+  document.querySelectorAll('.pseudo-line').forEach(el => el.classList.remove('active'));
+  if (id === null || id === undefined) return;
+  document.querySelectorAll(`.pseudo-line[data-line="${id}"]`).forEach(el => {
+    el.classList.add('active');
+    el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  });
+}
+
+function renderCards(highlights = {}, labels = {}) {
+  const rack = $('cardRack');
+  rack.innerHTML = arr.map((v, i) => {
+    let cls = 'card';
+    if (highlights.a?.includes(i)) cls += ' highlight-a';
+    if (highlights.b?.includes(i)) cls += ' highlight-b';
+    if (highlights.c?.includes(i)) cls += ' highlight-c';
+    if (highlights.sorted?.includes(i)) cls += ' sorted';
+    if (highlights.found?.includes(i)) cls += ' found';
+    if (highlights.dimmed?.includes(i)) cls += ' dimmed';
+    if (highlights.selected?.includes(i)) cls += ' selected-card';
+    let label = labels[i] ? `<div class="card-label">${labels[i]}</div>` : '';
+    let clickAttr = currentMode === 'practice' ? `onclick="practiceClick(${i})"` : '';
+    return `<div class="${cls}" ${clickAttr} data-idx="${i}">${label}${v}</div>`;
+  }).join('');
+}
+
+function setStatus(html) { $('statusBar').innerHTML = html; }
+function setPrompt(html) {
+  const el = $('practicePrompt');
+  if (html) { el.style.display = 'block'; el.innerHTML = html; }
+  else { el.style.display = 'none'; }
+}
+
+function showSearchTarget(target) {
+  if (target !== null && target !== undefined) {
+    $('searchTarget').style.display = 'inline-flex';
+    $('searchTarget').innerHTML = `🔍 Find: <strong>${target}</strong>`;
+  } else {
+    $('searchTarget').style.display = 'none';
+  }
+}
+
+function generateArray() {
+  const isSearch = currentAlgo === 'linear' || currentAlgo === 'binary';
+  const n = isSearch ? 10 : 8;
+  arr = randomArray(n, isSearch ? 50 : 40);
+  if (currentAlgo === 'binary') arr.sort((a, b) => a - b);
+}
+
+// ═══════════════════════════════════════════
+//  DEMO ANIMATIONS
+// ═══════════════════════════════════════════
+async function demoSelectionSort() {
+  animating = true;
+  const n = arr.length;
+  const sorted = [];
+  for (let i = 0; i < n - 1; i++) {
+    if (animCancel) break;
+    highlightLine(1);
+    setStatus(`Pass ${i + 1}: scanning unsorted portion`);
+    await wait(getDelay());
+
+    let minIdx = i;
+    highlightLine(2);
+    renderCards({ sorted, a: [i] }, { [i]: 'min' });
+    await wait(getDelay());
+
+    for (let j = i + 1; j < n; j++) {
+      if (animCancel) break;
+      highlightLine(3);
+      renderCards({ sorted, a: [minIdx], b: [j] }, { [minIdx]: 'min', [j]: 'j' });
+      await wait(getDelay() * 0.6);
+
+      highlightLine(4);
+      await wait(getDelay() * 0.4);
+      if (arr[j] < arr[minIdx]) {
+        highlightLine(5);
+        minIdx = j;
+        renderCards({ sorted, a: [minIdx], b: [j] }, { [minIdx]: 'min' });
+        setStatus(`New minimum found: ${arr[minIdx]} at index ${minIdx}`);
+        await wait(getDelay() * 0.6);
+      }
+    }
+
+    highlightLine(6);
+    renderCards({ sorted, a: [i], b: [minIdx] }, { [i]: 'swap', [minIdx]: 'swap' });
+    setStatus(`Swap A[${i}]=${arr[i]} ↔ A[${minIdx}]=${arr[minIdx]}`);
+    await wait(getDelay());
+    [arr[i], arr[minIdx]] = [arr[minIdx], arr[i]];
+    sorted.push(i);
+    renderCards({ sorted }, {});
+    await wait(getDelay() * 0.5);
+  }
+  sorted.push(arr.length - 1);
+  highlightLine(7);
+  renderCards({ sorted }, {});
+  setStatus('<span class="good">✓ Array sorted!</span>');
+  animating = false;
+}
+
+async function demoQuickSort() {
+  animating = true;
+  const sorted = new Set();
+
+  async function qs(lo, hi) {
+    if (animCancel) return;
+    highlightLine(1);
+    setStatus(`quickSort(${lo}, ${hi})`);
+    await wait(getDelay());
+    if (lo >= hi) {
+      if (lo === hi) sorted.add(lo);
+      return;
+    }
+
+    highlightLine(2);
+    await wait(getDelay() * 0.5);
+
+    // partition
+    highlightLine(6);
+    const pivot = arr[hi];
+    setStatus(`Pivot = ${pivot} (index ${hi})`);
+    renderCards({ c: [hi], dimmed: dimRange(0, lo, hi, sorted) }, { [hi]: 'pivot' });
+    await wait(getDelay());
+
+    highlightLine(7);
+    let ii = lo - 1;
+    await wait(getDelay() * 0.3);
+
+    for (let j = lo; j < hi; j++) {
+      if (animCancel) return;
+      highlightLine(8);
+      const labels = { [hi]: 'pivot' };
+      if (ii >= lo) labels[ii] = 'i';
+      labels[j] = 'j';
+      renderCards({ c: [hi], a: ii >= lo ? [ii] : [], b: [j], sorted: [...sorted], dimmed: dimRange(0, lo, hi, sorted) }, labels);
+      await wait(getDelay() * 0.6);
+
+      highlightLine(9);
+      if (arr[j] <= pivot) {
+        ii++;
+        highlightLine(10);
+        highlightLine(11);
+        setStatus(`${arr[j]} <= ${pivot}, swap A[${ii}] ↔ A[${j}]`);
+        [arr[ii], arr[j]] = [arr[j], arr[ii]];
+        renderCards({ c: [hi], a: [ii], b: [j], sorted: [...sorted], dimmed: dimRange(0, lo, hi, sorted) }, { [hi]: 'pivot', [ii]: 'i', [j]: 'j' });
+        await wait(getDelay() * 0.6);
+      }
+    }
+
+    highlightLine(12);
+    const pivotFinal = ii + 1;
+    [arr[pivotFinal], arr[hi]] = [arr[hi], arr[pivotFinal]];
+    sorted.add(pivotFinal);
+    setStatus(`Pivot ${pivot} placed at index ${pivotFinal}`);
+    renderCards({ sorted: [...sorted] }, { [pivotFinal]: 'pivot' });
+    await wait(getDelay());
+
+    highlightLine(3);
+    await qs(lo, pivotFinal - 1);
+    if (animCancel) return;
+    highlightLine(4);
+    await qs(pivotFinal + 1, hi);
+  }
+
+  function dimRange(start, lo, hi, sorted) {
+    const d = [];
+    for (let x = start; x < arr.length; x++) {
+      if ((x < lo || x > hi) && !sorted.has(x)) d.push(x);
+    }
+    return d;
+  }
+
+  await qs(0, arr.length - 1);
+  for (let i = 0; i < arr.length; i++) sorted.add(i);
+  renderCards({ sorted: [...sorted] }, {});
+  highlightLine(null);
+  setStatus('<span class="good">✓ Array sorted!</span>');
+  animating = false;
+}
+
+async function demoLinearSearch() {
+  animating = true;
+  const target = arr[Math.floor(Math.random() * arr.length)];
+  showSearchTarget(target);
+
+  highlightLine(0);
+  await wait(getDelay());
+
+  for (let i = 0; i < arr.length; i++) {
+    if (animCancel) break;
+    highlightLine(1);
+    renderCards({ b: [i] }, { [i]: 'i' });
+    setStatus(`Checking index ${i}: A[${i}] = ${arr[i]}`);
+    await wait(getDelay());
+
+    highlightLine(2);
+    await wait(getDelay() * 0.5);
+
+    if (arr[i] === target) {
+      highlightLine(3);
+      renderCards({ found: [i] }, {});
+      setStatus(`<span class="good">✓ Found ${target} at index ${i}!</span>`);
+      animating = false;
+      return;
+    }
+  }
+
+  highlightLine(4);
+  renderCards({}, {});
+  setStatus(`<span class="bad">✗ ${target} not found.</span>`);
+  animating = false;
+}
+
+async function demoBinarySearch() {
+  animating = true;
+  const target = arr[Math.floor(Math.random() * arr.length)];
+  showSearchTarget(target);
+
+  highlightLine(1);
+  let lo = 0;
+  highlightLine(2);
+  let hi = arr.length - 1;
+  await wait(getDelay());
+
+  while (lo <= hi) {
+    if (animCancel) break;
+    highlightLine(3);
+    await wait(getDelay() * 0.3);
+
+    highlightLine(4);
+    const mid = Math.floor((lo + hi) / 2);
+    const dimmed = [];
+    for (let x = 0; x < arr.length; x++) { if (x < lo || x > hi) dimmed.push(x); }
+    renderCards({ a: [lo], b: [hi], c: [mid], dimmed }, { [lo]: 'lo', [hi]: 'hi', [mid]: 'mid' });
+    setStatus(`lo=${lo}, hi=${hi}, mid=${mid} → A[${mid}]=${arr[mid]}`);
+    await wait(getDelay());
+
+    highlightLine(5);
+    await wait(getDelay() * 0.4);
+
+    if (arr[mid] === target) {
+      highlightLine(6);
+      renderCards({ found: [mid], dimmed }, {});
+      setStatus(`<span class="good">✓ Found ${target} at index ${mid}!</span>`);
+      animating = false;
+      return;
+    }
+
+    if (arr[mid] < target) {
+      highlightLine(7);
+      highlightLine(8);
+      setStatus(`${arr[mid]} < ${target}, search right half`);
+      lo = mid + 1;
+    } else {
+      highlightLine(9);
+      highlightLine(10);
+      setStatus(`${arr[mid]} > ${target}, search left half`);
+      hi = mid - 1;
+    }
+    await wait(getDelay());
+  }
+
+  highlightLine(11);
+  setStatus(`<span class="bad">✗ ${target} not found.</span>`);
+  animating = false;
+}
+
+// ═══════════════════════════════════════════
+//  PRACTICE MODES
+// ═══════════════════════════════════════════
+let practiceScore = { correct: 0, wrong: 0 };
+
+function initPractice() {
+  practiceScore = { correct: 0, wrong: 0 };
+  showScore();
+
+  if (currentAlgo === 'selection') initPracticeSelection();
+  else if (currentAlgo === 'quick') initPracticeQuick();
+  else if (currentAlgo === 'linear') initPracticeLinear();
+  else if (currentAlgo === 'binary') initPracticeBinary();
+}
+
+function showScore() {
+  const el = $('scoreDisplay');
+  el.style.display = 'flex';
+  el.innerHTML = `Correct: <span>${practiceScore.correct}</span> &nbsp;|&nbsp; Mistakes: <span style="color:var(--red)">${practiceScore.wrong}</span>`;
+}
+
+// ── Selection Sort Practice ──
+function initPracticeSelection() {
+  practiceState = { pass: 0, phase: 'find_min', minIdx: 0, sorted: [] };
+  highlightLine(1);
+  renderCards({ sorted: practiceState.sorted }, {});
+  setPrompt(`Pass 1: Click the <strong>smallest</strong> card in the unsorted portion.`);
+  setStatus('');
+}
+
+// ── Quick Sort Practice ──
+function initPracticeQuick() {
+  practiceState = {
+    stack: [{ lo: 0, hi: arr.length - 1 }],
+    phase: 'pick_compare',
+    pivotIdx: arr.length - 1,
+    pivot: arr[arr.length - 1],
+    i: -1,
+    j: 0,
+    lo: 0,
+    hi: arr.length - 1,
+    sorted: new Set()
+  };
+  highlightLine(6);
+  renderCards({ c: [practiceState.pivotIdx] }, { [practiceState.pivotIdx]: 'pivot' });
+  setPrompt(`Pivot is <strong>${practiceState.pivot}</strong>. Is A[${practiceState.j}] = ${arr[practiceState.j]} ≤ pivot? Click it if YES, or click the <strong>next card →</strong> to skip.`);
+  setStatus('');
+}
+
+// ── Linear Search Practice ──
+function initPracticeLinear() {
+  practiceState = {
+    target: arr[Math.floor(Math.random() * arr.length)],
+    currentIdx: 0,
+  };
+  showSearchTarget(practiceState.target);
+  highlightLine(1);
+  renderCards({}, {});
+  setPrompt(`Click the <strong>next card to check</strong> (start from the left).`);
+  setStatus('');
+}
+
+// ── Binary Search Practice ──
+function initPracticeBinary() {
+  practiceState = {
+    target: arr[Math.floor(Math.random() * arr.length)],
+    lo: 0,
+    hi: arr.length - 1,
+    phase: 'pick_mid',
+  };
+  showSearchTarget(practiceState.target);
+  highlightLine(3);
+  const dimmed = [];
+  for (let x = 0; x < arr.length; x++) { if (x < practiceState.lo || x > practiceState.hi) dimmed.push(x); }
+  renderCards({ a: [practiceState.lo], b: [practiceState.hi], dimmed }, { [practiceState.lo]: 'lo', [practiceState.hi]: 'hi' });
+  setPrompt(`Click the <strong>middle</strong> element between lo=${practiceState.lo} and hi=${practiceState.hi}.`);
+  setStatus('');
+}
+
+// ── Click handler ──
+function practiceClick(idx) {
+  if (animating) return;
+
+  if (currentAlgo === 'selection') practiceSelectionClick(idx);
+  else if (currentAlgo === 'quick') practiceQuickClick(idx);
+  else if (currentAlgo === 'linear') practiceLinearClick(idx);
+  else if (currentAlgo === 'binary') practiceBinaryClick(idx);
+}
+
+function practiceSelectionClick(idx) {
+  const s = practiceState;
+  if (s.phase === 'find_min') {
+    // Find actual min in unsorted
+    let minVal = Infinity, minI = s.pass;
+    for (let x = s.pass; x < arr.length; x++) {
+      if (arr[x] < minVal) { minVal = arr[x]; minI = x; }
+    }
+    if (idx === minI) {
+      practiceScore.correct++;
+      s.minIdx = minI;
+      s.phase = 'swap';
+      highlightLine(6);
+      renderCards({ sorted: s.sorted, a: [s.pass], b: [minI] }, { [s.pass]: 'i', [minI]: 'min' });
+      if (s.pass === minI) {
+        setPrompt(`Min is already in position! Click it to confirm.`);
+      } else {
+        setPrompt(`Now click position <strong>${s.pass}</strong> to swap the minimum into place.`);
+      }
+    } else {
+      practiceScore.wrong++;
+      flashWrong(idx);
+      setStatus(`<span class="bad">Not the minimum! Look for the smallest value from index ${s.pass} onwards.</span>`);
+    }
+    showScore();
+  } else if (s.phase === 'swap') {
+    if (idx === s.pass || (s.pass === s.minIdx && idx === s.minIdx)) {
+      practiceScore.correct++;
+      [arr[s.pass], arr[s.minIdx]] = [arr[s.minIdx], arr[s.pass]];
+      s.sorted.push(s.pass);
+      s.pass++;
+      if (s.pass >= arr.length - 1) {
+        s.sorted.push(arr.length - 1);
+        highlightLine(7);
+        renderCards({ sorted: s.sorted }, {});
+        setPrompt(null);
+        setStatus('<span class="good">✓ Sorting complete! Well done!</span>');
+      } else {
+        s.phase = 'find_min';
+        highlightLine(1);
+        renderCards({ sorted: s.sorted }, {});
+        setPrompt(`Pass ${s.pass + 1}: Click the <strong>smallest</strong> card in the unsorted portion.`);
+        setStatus('');
+      }
+    } else {
+      practiceScore.wrong++;
+      flashWrong(idx);
+      setStatus(`<span class="bad">Click position ${s.pass} to complete the swap.</span>`);
+    }
+    showScore();
+  }
+}
+
+function practiceQuickClick(idx) {
+  const s = practiceState;
+
+  if (s.phase === 'pick_compare') {
+    const isLessThanOrEq = arr[s.j] <= s.pivot;
+
+    if (isLessThanOrEq && idx === s.j) {
+      // Correct: they clicked the element to swap
+      practiceScore.correct++;
+      s.i++;
+      [arr[s.i], arr[s.j]] = [arr[s.j], arr[s.i]];
+      highlightLine(11);
+      setStatus(`<span class="good">✓ ${arr[s.i]} ≤ ${s.pivot}, swapped into position ${s.i}</span>`);
+      s.j++;
+    } else if (!isLessThanOrEq && idx === s.j + 1 && s.j + 1 <= s.hi) {
+      // Correct skip by clicking next card
+      practiceScore.correct++;
+      setStatus(`<span class="good">✓ Correct, ${arr[s.j]} > ${s.pivot}, skip.</span>`);
+      s.j++;
+    } else if (!isLessThanOrEq && idx === s.j) {
+      // They clicked current but should skip
+      practiceScore.wrong++;
+      flashWrong(idx);
+      setStatus(`<span class="bad">${arr[s.j]} > ${s.pivot} — skip this one! Click the next card →</span>`);
+      showScore();
+      return;
+    } else {
+      practiceScore.wrong++;
+      flashWrong(idx);
+      setStatus(`<span class="bad">Focus on A[${s.j}] = ${arr[s.j]}. Is it ≤ ${s.pivot}?</span>`);
+      showScore();
+      return;
+    }
+
+    showScore();
+
+    if (s.j >= s.hi) {
+      // Partition complete, place pivot
+      s.phase = 'place_pivot';
+      highlightLine(12);
+      renderCards({
+        c: [s.hi],
+        a: s.i + 1 !== s.hi ? [s.i + 1] : [],
+        sorted: [...s.sorted]
+      }, { [s.hi]: 'pivot', [s.i + 1]: '← here' });
+      setPrompt(`Partition done! Click position <strong>${s.i + 1}</strong> to place the pivot.`);
+      return;
+    }
+
+    renderCards({ c: [s.hi], sorted: [...s.sorted] }, { [s.hi]: 'pivot', [s.j]: 'j' });
+    setPrompt(`Is A[${s.j}] = ${arr[s.j]} ≤ pivot (${s.pivot})? Click it if YES, or click the <strong>next card →</strong> to skip.`);
+
+  } else if (s.phase === 'place_pivot') {
+    const pivotDest = s.i + 1;
+    if (idx === pivotDest || idx === s.hi) {
+      practiceScore.correct++;
+      [arr[pivotDest], arr[s.hi]] = [arr[s.hi], arr[pivotDest]];
+      s.sorted.add(pivotDest);
+
+      // Push sub-arrays
+      const newStack = [];
+      if (s.lo < pivotDest - 1) newStack.push({ lo: s.lo, hi: pivotDest - 1 });
+      else if (s.lo === pivotDest - 1) s.sorted.add(s.lo);
+      if (pivotDest + 1 < s.hi) newStack.push({ lo: pivotDest + 1, hi: s.hi });
+      else if (pivotDest + 1 === s.hi) s.sorted.add(s.hi);
+
+      s.stack.shift();
+      s.stack = [...newStack, ...s.stack];
+
+      if (s.stack.length === 0) {
+        for (let x = 0; x < arr.length; x++) s.sorted.add(x);
+        renderCards({ sorted: [...s.sorted] }, {});
+        setPrompt(null);
+        setStatus('<span class="good">✓ Sorting complete! Well done!</span>');
+        showScore();
+        return;
+      }
+
+      // Next partition
+      const next = s.stack[0];
+      s.lo = next.lo;
+      s.hi = next.hi;
+      s.pivotIdx = next.hi;
+      s.pivot = arr[next.hi];
+      s.i = next.lo - 1;
+      s.j = next.lo;
+      s.phase = 'pick_compare';
+
+      highlightLine(6);
+      renderCards({ c: [s.pivotIdx], sorted: [...s.sorted] }, { [s.pivotIdx]: 'pivot' });
+      setPrompt(`New partition [${s.lo}..${s.hi}]. Pivot = <strong>${s.pivot}</strong>. Is A[${s.j}] = ${arr[s.j]} ≤ pivot?`);
+    } else {
+      practiceScore.wrong++;
+      flashWrong(idx);
+      setStatus(`<span class="bad">Click position ${s.i + 1} to place the pivot.</span>`);
+    }
+    showScore();
+  }
+}
+
+function practiceLinearClick(idx) {
+  const s = practiceState;
+  if (idx === s.currentIdx) {
+    practiceScore.correct++;
+    highlightLine(2);
+    if (arr[idx] === s.target) {
+      highlightLine(3);
+      renderCards({ found: [idx] }, {});
+      setPrompt(null);
+      setStatus(`<span class="good">✓ Found ${s.target} at index ${idx}!</span>`);
+    } else {
+      renderCards({ b: [idx] }, { [idx]: 'i' });
+      setStatus(`A[${idx}] = ${arr[idx]} ≠ ${s.target}. Keep going.`);
+      s.currentIdx++;
+      if (s.currentIdx >= arr.length) {
+        highlightLine(4);
+        renderCards({}, {});
+        setPrompt(null);
+        setStatus(`<span class="bad">Reached the end — ${s.target} not found.</span>`);
+      } else {
+        setPrompt(`Click the <strong>next card</strong> (index ${s.currentIdx}).`);
+      }
+    }
+  } else {
+    practiceScore.wrong++;
+    flashWrong(idx);
+    setStatus(`<span class="bad">Check cards in order! Next is index ${s.currentIdx}.</span>`);
+  }
+  showScore();
+}
+
+function practiceBinaryClick(idx) {
+  const s = practiceState;
+  if (s.phase === 'pick_mid') {
+    const expectedMid = Math.floor((s.lo + s.hi) / 2);
+    if (idx === expectedMid) {
+      practiceScore.correct++;
+      highlightLine(5);
+      if (arr[idx] === s.target) {
+        highlightLine(6);
+        renderCards({ found: [idx] }, {});
+        setPrompt(null);
+        setStatus(`<span class="good">✓ Found ${s.target} at index ${idx}!</span>`);
+      } else {
+        s.phase = 'pick_half';
+        s.mid = idx;
+        const dimmed = [];
+        for (let x = 0; x < arr.length; x++) { if (x < s.lo || x > s.hi) dimmed.push(x); }
+        renderCards({ c: [idx], a: [s.lo], b: [s.hi], dimmed }, { [s.lo]: 'lo', [s.hi]: 'hi', [idx]: 'mid' });
+        if (arr[idx] < s.target) {
+          highlightLine(7);
+          setPrompt(`A[${idx}] = ${arr[idx]} < ${s.target}. Click a card in the <strong>right half</strong> to search there.`);
+        } else {
+          highlightLine(9);
+          setPrompt(`A[${idx}] = ${arr[idx]} > ${s.target}. Click a card in the <strong>left half</strong> to search there.`);
+        }
+      }
+    } else {
+      practiceScore.wrong++;
+      flashWrong(idx);
+      setStatus(`<span class="bad">Mid = ⌊(${s.lo}+${s.hi})/2⌋ = ${expectedMid}. Click index ${expectedMid}.</span>`);
+    }
+    showScore();
+  } else if (s.phase === 'pick_half') {
+    const shouldGoRight = arr[s.mid] < s.target;
+    const inRightHalf = idx > s.mid && idx <= s.hi;
+    const inLeftHalf = idx >= s.lo && idx < s.mid;
+
+    if ((shouldGoRight && inRightHalf) || (!shouldGoRight && inLeftHalf)) {
+      practiceScore.correct++;
+      if (shouldGoRight) {
+        s.lo = s.mid + 1;
+        highlightLine(8);
+      } else {
+        s.hi = s.mid - 1;
+        highlightLine(10);
+      }
+      s.phase = 'pick_mid';
+
+      if (s.lo > s.hi) {
+        highlightLine(11);
+        renderCards({}, {});
+        setPrompt(null);
+        setStatus(`<span class="bad">${s.target} not found — lo > hi.</span>`);
+      } else {
+        const dimmed = [];
+        for (let x = 0; x < arr.length; x++) { if (x < s.lo || x > s.hi) dimmed.push(x); }
+        renderCards({ a: [s.lo], b: [s.hi], dimmed }, { [s.lo]: 'lo', [s.hi]: 'hi' });
+        setPrompt(`Now click the <strong>middle</strong> element between lo=${s.lo} and hi=${s.hi}.`);
+        setStatus('');
+      }
+    } else {
+      practiceScore.wrong++;
+      flashWrong(idx);
+      setStatus(`<span class="bad">${shouldGoRight ? 'Search RIGHT (after mid)' : 'Search LEFT (before mid)'}!</span>`);
+    }
+    showScore();
+  }
+}
+
+function flashWrong(idx) {
+  const cards = $('cardRack').children;
+  if (cards[idx]) {
+    cards[idx].classList.add('wrong');
+    setTimeout(() => cards[idx].classList.remove('wrong'), 400);
+  }
+}
+
+// ═══════════════════════════════════════════
+//  INITIALIZATION & WIRING
+// ═══════════════════════════════════════════
+function init() {
+  animCancel = true;
+  setTimeout(() => {
+    animCancel = false;
+    animating = false;
+    generateArray();
+    renderPseudocode();
+    highlightLine(null);
+    renderCards({});
+    showSearchTarget(null);
+    setStatus('Press "Run" to start the animation.');
+    setPrompt(null);
+    $('scoreDisplay').style.display = 'none';
+    $('algoInfo').innerHTML = `<p>${algoDescriptions[currentAlgo]}</p>`;
+    $('cardsTitle').textContent = (currentAlgo === 'binary') ? 'Sorted Array' : 'Array';
+    $('speedControl').style.display = currentMode === 'demo' ? 'flex' : 'none';
+
+    renderControls();
+  }, 100);
+}
+
+function renderControls() {
+  const c = $('controls');
+  if (currentMode === 'demo') {
+    c.innerHTML = `
+      <button class="btn btn-primary" id="runBtn" onclick="runDemo()">▶ Run</button>
+      <button class="btn btn-secondary" onclick="resetCurrent()">↻ New Array</button>
+    `;
+  } else {
+    c.innerHTML = `
+      <button class="btn btn-primary" onclick="startPractice()">✋ Start Practice</button>
+      <button class="btn btn-secondary" onclick="resetCurrent()">↻ New Array</button>
+    `;
+  }
+}
+
+function runDemo() {
+  if (animating) return;
+  const btn = $('runBtn');
+  if (btn) btn.disabled = true;
+
+  if (currentAlgo === 'selection') demoSelectionSort();
+  else if (currentAlgo === 'quick') demoQuickSort();
+  else if (currentAlgo === 'linear') demoLinearSearch();
+  else if (currentAlgo === 'binary') demoBinarySearch();
+}
+
+function startPractice() {
+  if (animating) return;
+  generateArray();
+  renderCards({});
+  initPractice();
+}
+
+function resetCurrent() {
+  init();
+}
+
+// Tab clicks
+document.querySelectorAll('.algo-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.algo-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentAlgo = tab.dataset.algo;
+    init();
+  });
+});
+
+// Mode clicks
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentMode = btn.dataset.mode;
+    init();
+  });
+});
+
+// Speed
+$('speedSlider').addEventListener('input', e => { speed = parseInt(e.target.value); });
+
+// Boot
+init();
+</script>
+</body>
+</html>
