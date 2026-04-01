@@ -523,6 +523,7 @@ let currentMode = 'demo';
 let arr = [];
 let animating = false;
 let animCancel = false;
+let animPaused = false;
 let speed = 3;
 let arraySize = 8;
 let practiceState = {};
@@ -636,10 +637,17 @@ function getDelay() {
 
 function wait(ms) {
   return new Promise(r => {
-    const t = setTimeout(r, ms);
-    const check = setInterval(() => {
-      if (animCancel) { clearTimeout(t); clearInterval(check); r(); }
-    }, 50);
+    // Wait out any pause first
+    function checkPause() {
+      if (animCancel) { r(); return; }
+      if (animPaused) { setTimeout(checkPause, 50); return; }
+      // Now do the actual delay
+      const t = setTimeout(r, ms);
+      const check = setInterval(() => {
+        if (animCancel) { clearTimeout(t); clearInterval(check); r(); }
+      }, 50);
+    }
+    checkPause();
   });
 }
 
@@ -758,7 +766,7 @@ async function demoSelectionSort() {
   renderCards({ sorted }, {});
   setVars({ n, result: 'sorted ✓' });
   setStatus('<span class="good">✓ Array sorted!</span>');
-  animating = false;
+  demoFinished();
 }
 
 async function demoQuickSort() {
@@ -843,7 +851,7 @@ async function demoQuickSort() {
   highlightLine(null);
   setVars({ result: 'sorted ✓' });
   setStatus('<span class="good">✓ Array sorted!</span>');
-  animating = false;
+  demoFinished();
 }
 
 async function demoLinearSearch() {
@@ -871,7 +879,7 @@ async function demoLinearSearch() {
       setVars({ target, i, 'A[i]': arr[i], result: `found @ ${i}` });
       renderCards({ found: [i] }, {});
       setStatus(`<span class="good">✓ Found ${target} at index ${i}!</span>`);
-      animating = false;
+      demoFinished();
       return;
     }
   }
@@ -880,7 +888,7 @@ async function demoLinearSearch() {
   setVars({ target, result: 'not found (−1)' });
   renderCards({}, {});
   setStatus(`<span class="bad">✗ ${target} not found.</span>`);
-  animating = false;
+  demoFinished();
 }
 
 async function demoBinarySearch() {
@@ -918,7 +926,7 @@ async function demoBinarySearch() {
       setVars({ target, lo, hi, mid, 'A[mid]': arr[mid], result: `found @ ${mid}` });
       renderCards({ found: [mid], dimmed }, {});
       setStatus(`<span class="good">✓ Found ${target} at index ${mid}!</span>`);
-      animating = false;
+      demoFinished();
       return;
     }
 
@@ -941,7 +949,7 @@ async function demoBinarySearch() {
   highlightLine(11);
   setVars({ target, lo, hi, result: 'not found (−1)' });
   setStatus(`<span class="bad">✗ ${target} not found.</span>`);
-  animating = false;
+  demoFinished();
 }
 
 // ═══════════════════════════════════════════
@@ -1312,6 +1320,7 @@ function init() {
   setTimeout(() => {
     animCancel = false;
     animating = false;
+    animPaused = false;
     generateArray();
     renderPseudocode();
     highlightLine(null);
@@ -1334,6 +1343,7 @@ function renderControls() {
   if (currentMode === 'demo') {
     c.innerHTML = `
       <button class="btn btn-primary" id="runBtn" onclick="runDemo()">▶ Run</button>
+      <button class="btn btn-secondary" id="pauseBtn" onclick="togglePause()" style="display:none;">⏸ Pause</button>
       <button class="btn btn-secondary" onclick="resetCurrent()">↻ New Array</button>
     `;
   } else {
@@ -1344,10 +1354,35 @@ function renderControls() {
   }
 }
 
+function togglePause() {
+  animPaused = !animPaused;
+  const btn = $('pauseBtn');
+  if (btn) {
+    btn.textContent = animPaused ? '▶ Resume' : '⏸ Pause';
+    if (animPaused) {
+      btn.style.borderColor = 'var(--orange)';
+      btn.style.color = 'var(--orange)';
+    } else {
+      btn.style.borderColor = '';
+      btn.style.color = '';
+    }
+  }
+}
+
+function demoFinished() {
+  animating = false;
+  animPaused = false;
+  const pauseBtn = $('pauseBtn');
+  if (pauseBtn) pauseBtn.style.display = 'none';
+}
+
 function runDemo() {
   if (animating) return;
+  animPaused = false;
   const btn = $('runBtn');
   if (btn) btn.disabled = true;
+  const pauseBtn = $('pauseBtn');
+  if (pauseBtn) { pauseBtn.style.display = ''; pauseBtn.textContent = '⏸ Pause'; pauseBtn.style.borderColor = ''; pauseBtn.style.color = ''; }
 
   if (currentAlgo === 'selection') demoSelectionSort();
   else if (currentAlgo === 'quick') demoQuickSort();
