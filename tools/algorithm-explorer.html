@@ -103,6 +103,7 @@ body {
   align-items: center;
   gap: 16px;
   margin-bottom: 24px;
+  flex-wrap: wrap;
 }
 
 .mode-btn {
@@ -121,18 +122,34 @@ body {
 .mode-btn:hover { border-color: var(--accent); color: var(--text); }
 .mode-btn.active { border-color: var(--accent); background: var(--accent); color: #fff; }
 
-.speed-control {
+.toolbar-right {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.toolbar-control {
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 13px;
   color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
 }
 
-.speed-control input[type=range] {
-  width: 100px;
+.toolbar-control input[type=range] {
+  width: 80px;
   accent-color: var(--accent);
+}
+
+.toolbar-control .size-val {
+  display: inline-block;
+  min-width: 18px;
+  text-align: center;
+  color: var(--text);
+  font-weight: 600;
 }
 
 /* ── LAYOUT ── */
@@ -218,6 +235,25 @@ body {
   font-weight: 600;
 }
 
+.card-index {
+  position: absolute;
+  bottom: 3px;
+  right: 5px;
+  font-size: 9px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim);
+  opacity: 0.6;
+  font-weight: 400;
+  line-height: 1;
+}
+
+/* ── RIGHT COLUMN ── */
+.right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 /* ── PSEUDOCODE ── */
 .code-panel {
   background: var(--surface);
@@ -225,7 +261,7 @@ body {
   border-radius: var(--radius);
   padding: 20px;
   overflow-y: auto;
-  max-height: 520px;
+  max-height: 360px;
 }
 
 .code-panel h3 {
@@ -258,6 +294,64 @@ body {
 .pseudo-line .kw { color: var(--accent); }
 .pseudo-line .fn { color: var(--green); }
 .pseudo-line .cm { color: var(--text-dim); font-style: italic; }
+
+/* ── VARIABLE WATCH ── */
+.var-watch {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+}
+
+.var-watch h3 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.var-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 6px;
+}
+
+.var-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: var(--surface2);
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  border: 1px solid transparent;
+  transition: all 0.3s;
+}
+
+.var-item.changed {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+}
+
+.var-name {
+  color: var(--text-dim);
+}
+
+.var-val {
+  color: var(--green);
+  font-weight: 700;
+}
+
+.var-empty {
+  color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-style: italic;
+  padding: 4px 0;
+}
 
 /* ── CONTROLS ── */
 .controls-row {
@@ -334,15 +428,6 @@ body {
   margin-top: 8px;
 }
 
-.partition-marker {
-  width: var(--card-w);
-  text-align: center;
-  font-size: 10px;
-  font-family: 'JetBrains Mono', monospace;
-  color: var(--text-dim);
-  height: 16px;
-}
-
 /* ── INTRO OVERLAY ── */
 .algo-info {
   padding: 12px 16px;
@@ -390,9 +475,16 @@ body {
   <div class="mode-bar">
     <button class="mode-btn active" data-mode="demo">▶ Watch Demo</button>
     <button class="mode-btn" data-mode="practice">✋ Practice</button>
-    <div class="speed-control" id="speedControl">
-      <label>Speed:</label>
-      <input type="range" min="1" max="5" value="3" id="speedSlider">
+    <div class="toolbar-right">
+      <div class="toolbar-control" id="sizeControl">
+        <label>Size:</label>
+        <input type="range" min="4" max="16" value="8" id="sizeSlider">
+        <span class="size-val" id="sizeVal">8</span>
+      </div>
+      <div class="toolbar-control" id="speedControl">
+        <label>Speed:</label>
+        <input type="range" min="1" max="5" value="3" id="speedSlider">
+      </div>
     </div>
   </div>
 
@@ -409,9 +501,15 @@ body {
       <div class="practice-prompt" id="practicePrompt" style="display:none;"></div>
       <div class="score-display" id="scoreDisplay" style="display:none;"></div>
     </div>
-    <div class="code-panel">
-      <h3>Pseudocode</h3>
-      <div id="pseudocode"></div>
+    <div class="right-col">
+      <div class="code-panel">
+        <h3>Pseudocode</h3>
+        <div id="pseudocode"></div>
+      </div>
+      <div class="var-watch">
+        <h3>Variables</h3>
+        <div id="varWatch"><span class="var-empty">Run to see variables…</span></div>
+      </div>
     </div>
   </div>
 </div>
@@ -421,14 +519,41 @@ body {
 //  STATE
 // ═══════════════════════════════════════════
 let currentAlgo = 'selection';
-let currentMode = 'demo'; // demo | practice
+let currentMode = 'demo';
 let arr = [];
 let animating = false;
 let animCancel = false;
 let speed = 3;
+let arraySize = 8;
 let practiceState = {};
 
 const $ = id => document.getElementById(id);
+
+// ═══════════════════════════════════════════
+//  VARIABLE WATCH
+// ═══════════════════════════════════════════
+let prevVars = {};
+
+function setVars(varsObj) {
+  const el = $('varWatch');
+  const entries = Object.entries(varsObj).filter(([, v]) => v !== null && v !== undefined);
+  if (entries.length === 0) {
+    el.innerHTML = '<span class="var-empty">Run to see variables…</span>';
+    prevVars = {};
+    return;
+  }
+  el.innerHTML = '<div class="var-grid">' + entries.map(([name, val]) => {
+    const changed = prevVars[name] !== undefined && String(prevVars[name]) !== String(val);
+    return `<div class="var-item${changed ? ' changed' : ''}"><span class="var-name">${name}:</span> <span class="var-val">${val}</span></div>`;
+  }).join('') + '</div>';
+  prevVars = {};
+  entries.forEach(([k, v]) => { prevVars[k] = v; });
+}
+
+function clearVars() {
+  $('varWatch').innerHTML = '<span class="var-empty">Run to see variables…</span>';
+  prevVars = {};
+}
 
 // ═══════════════════════════════════════════
 //  PSEUDOCODE DEFINITIONS
@@ -550,7 +675,7 @@ function renderCards(highlights = {}, labels = {}) {
     if (highlights.selected?.includes(i)) cls += ' selected-card';
     let label = labels[i] ? `<div class="card-label">${labels[i]}</div>` : '';
     let clickAttr = currentMode === 'practice' ? `onclick="practiceClick(${i})"` : '';
-    return `<div class="${cls}" ${clickAttr} data-idx="${i}">${label}${v}</div>`;
+    return `<div class="${cls}" ${clickAttr} data-idx="${i}">${label}${v}<span class="card-index">${i}</span></div>`;
   }).join('');
 }
 
@@ -571,9 +696,9 @@ function showSearchTarget(target) {
 }
 
 function generateArray() {
-  const isSearch = currentAlgo === 'linear' || currentAlgo === 'binary';
-  const n = isSearch ? 10 : 8;
-  arr = randomArray(n, isSearch ? 50 : 40);
+  const n = arraySize;
+  const maxVal = Math.max(n * 4, 20);
+  arr = randomArray(n, maxVal);
   if (currentAlgo === 'binary') arr.sort((a, b) => a - b);
 }
 
@@ -584,20 +709,25 @@ async function demoSelectionSort() {
   animating = true;
   const n = arr.length;
   const sorted = [];
+  setVars({ n: n, i: '–', j: '–', minIndex: '–' });
+
   for (let i = 0; i < n - 1; i++) {
     if (animCancel) break;
     highlightLine(1);
+    setVars({ n, i, j: '–', minIndex: '–' });
     setStatus(`Pass ${i + 1}: scanning unsorted portion`);
     await wait(getDelay());
 
     let minIdx = i;
     highlightLine(2);
+    setVars({ n, i, j: '–', minIndex: minIdx, 'A[minIndex]': arr[minIdx] });
     renderCards({ sorted, a: [i] }, { [i]: 'min' });
     await wait(getDelay());
 
     for (let j = i + 1; j < n; j++) {
       if (animCancel) break;
       highlightLine(3);
+      setVars({ n, i, j, minIndex: minIdx, 'A[j]': arr[j], 'A[minIndex]': arr[minIdx] });
       renderCards({ sorted, a: [minIdx], b: [j] }, { [minIdx]: 'min', [j]: 'j' });
       await wait(getDelay() * 0.6);
 
@@ -606,6 +736,7 @@ async function demoSelectionSort() {
       if (arr[j] < arr[minIdx]) {
         highlightLine(5);
         minIdx = j;
+        setVars({ n, i, j, minIndex: minIdx, 'A[j]': arr[j], 'A[minIndex]': arr[minIdx] });
         renderCards({ sorted, a: [minIdx], b: [j] }, { [minIdx]: 'min' });
         setStatus(`New minimum found: ${arr[minIdx]} at index ${minIdx}`);
         await wait(getDelay() * 0.6);
@@ -613,6 +744,7 @@ async function demoSelectionSort() {
     }
 
     highlightLine(6);
+    setVars({ n, i, minIndex: minIdx, 'A[i]': arr[i], 'A[minIndex]': arr[minIdx] });
     renderCards({ sorted, a: [i], b: [minIdx] }, { [i]: 'swap', [minIdx]: 'swap' });
     setStatus(`Swap A[${i}]=${arr[i]} ↔ A[${minIdx}]=${arr[minIdx]}`);
     await wait(getDelay());
@@ -624,6 +756,7 @@ async function demoSelectionSort() {
   sorted.push(arr.length - 1);
   highlightLine(7);
   renderCards({ sorted }, {});
+  setVars({ n, result: 'sorted ✓' });
   setStatus('<span class="good">✓ Array sorted!</span>');
   animating = false;
 }
@@ -635,6 +768,7 @@ async function demoQuickSort() {
   async function qs(lo, hi) {
     if (animCancel) return;
     highlightLine(1);
+    setVars({ lo, hi });
     setStatus(`quickSort(${lo}, ${hi})`);
     await wait(getDelay());
     if (lo >= hi) {
@@ -645,9 +779,9 @@ async function demoQuickSort() {
     highlightLine(2);
     await wait(getDelay() * 0.5);
 
-    // partition
     highlightLine(6);
     const pivot = arr[hi];
+    setVars({ lo, hi, pivot, i: lo - 1, j: lo });
     setStatus(`Pivot = ${pivot} (index ${hi})`);
     renderCards({ c: [hi], dimmed: dimRange(0, lo, hi, sorted) }, { [hi]: 'pivot' });
     await wait(getDelay());
@@ -659,6 +793,7 @@ async function demoQuickSort() {
     for (let j = lo; j < hi; j++) {
       if (animCancel) return;
       highlightLine(8);
+      setVars({ lo, hi, pivot, i: ii, j, 'A[j]': arr[j] });
       const labels = { [hi]: 'pivot' };
       if (ii >= lo) labels[ii] = 'i';
       labels[j] = 'j';
@@ -670,6 +805,7 @@ async function demoQuickSort() {
         ii++;
         highlightLine(10);
         highlightLine(11);
+        setVars({ lo, hi, pivot, i: ii, j, 'A[i]': arr[ii], 'A[j]': arr[j] });
         setStatus(`${arr[j]} <= ${pivot}, swap A[${ii}] ↔ A[${j}]`);
         [arr[ii], arr[j]] = [arr[j], arr[ii]];
         renderCards({ c: [hi], a: [ii], b: [j], sorted: [...sorted], dimmed: dimRange(0, lo, hi, sorted) }, { [hi]: 'pivot', [ii]: 'i', [j]: 'j' });
@@ -679,6 +815,7 @@ async function demoQuickSort() {
 
     highlightLine(12);
     const pivotFinal = ii + 1;
+    setVars({ lo, hi, pivot, pivotIndex: pivotFinal });
     [arr[pivotFinal], arr[hi]] = [arr[hi], arr[pivotFinal]];
     sorted.add(pivotFinal);
     setStatus(`Pivot ${pivot} placed at index ${pivotFinal}`);
@@ -704,6 +841,7 @@ async function demoQuickSort() {
   for (let i = 0; i < arr.length; i++) sorted.add(i);
   renderCards({ sorted: [...sorted] }, {});
   highlightLine(null);
+  setVars({ result: 'sorted ✓' });
   setStatus('<span class="good">✓ Array sorted!</span>');
   animating = false;
 }
@@ -714,11 +852,13 @@ async function demoLinearSearch() {
   showSearchTarget(target);
 
   highlightLine(0);
+  setVars({ target, i: '–', 'A[i]': '–' });
   await wait(getDelay());
 
   for (let i = 0; i < arr.length; i++) {
     if (animCancel) break;
     highlightLine(1);
+    setVars({ target, i, 'A[i]': arr[i] });
     renderCards({ b: [i] }, { [i]: 'i' });
     setStatus(`Checking index ${i}: A[${i}] = ${arr[i]}`);
     await wait(getDelay());
@@ -728,6 +868,7 @@ async function demoLinearSearch() {
 
     if (arr[i] === target) {
       highlightLine(3);
+      setVars({ target, i, 'A[i]': arr[i], result: `found @ ${i}` });
       renderCards({ found: [i] }, {});
       setStatus(`<span class="good">✓ Found ${target} at index ${i}!</span>`);
       animating = false;
@@ -736,6 +877,7 @@ async function demoLinearSearch() {
   }
 
   highlightLine(4);
+  setVars({ target, result: 'not found (−1)' });
   renderCards({}, {});
   setStatus(`<span class="bad">✗ ${target} not found.</span>`);
   animating = false;
@@ -750,15 +892,18 @@ async function demoBinarySearch() {
   let lo = 0;
   highlightLine(2);
   let hi = arr.length - 1;
+  setVars({ target, lo, hi, mid: '–', 'A[mid]': '–' });
   await wait(getDelay());
 
   while (lo <= hi) {
     if (animCancel) break;
     highlightLine(3);
+    setVars({ target, lo, hi, mid: '–', 'A[mid]': '–' });
     await wait(getDelay() * 0.3);
 
     highlightLine(4);
     const mid = Math.floor((lo + hi) / 2);
+    setVars({ target, lo, hi, mid, 'A[mid]': arr[mid] });
     const dimmed = [];
     for (let x = 0; x < arr.length; x++) { if (x < lo || x > hi) dimmed.push(x); }
     renderCards({ a: [lo], b: [hi], c: [mid], dimmed }, { [lo]: 'lo', [hi]: 'hi', [mid]: 'mid' });
@@ -770,6 +915,7 @@ async function demoBinarySearch() {
 
     if (arr[mid] === target) {
       highlightLine(6);
+      setVars({ target, lo, hi, mid, 'A[mid]': arr[mid], result: `found @ ${mid}` });
       renderCards({ found: [mid], dimmed }, {});
       setStatus(`<span class="good">✓ Found ${target} at index ${mid}!</span>`);
       animating = false;
@@ -781,16 +927,19 @@ async function demoBinarySearch() {
       highlightLine(8);
       setStatus(`${arr[mid]} < ${target}, search right half`);
       lo = mid + 1;
+      setVars({ target, lo, hi, mid, 'A[mid]': arr[mid] });
     } else {
       highlightLine(9);
       highlightLine(10);
       setStatus(`${arr[mid]} > ${target}, search left half`);
       hi = mid - 1;
+      setVars({ target, lo, hi, mid, 'A[mid]': arr[mid] });
     }
     await wait(getDelay());
   }
 
   highlightLine(11);
+  setVars({ target, lo, hi, result: 'not found (−1)' });
   setStatus(`<span class="bad">✗ ${target} not found.</span>`);
   animating = false;
 }
@@ -820,12 +969,12 @@ function showScore() {
 function initPracticeSelection() {
   practiceState = { pass: 0, phase: 'find_min', minIdx: 0, sorted: [] };
   highlightLine(1);
+  setVars({ n: arr.length, i: 0, minIndex: 0 });
   renderCards({ sorted: practiceState.sorted }, {});
   setPrompt(`Pass 1: Click the <strong>smallest</strong> card in the unsorted portion.`);
   setStatus('');
 }
 
-// ── Quick Sort Practice ──
 function initPracticeQuick() {
   practiceState = {
     stack: [{ lo: 0, hi: arr.length - 1 }],
@@ -839,12 +988,12 @@ function initPracticeQuick() {
     sorted: new Set()
   };
   highlightLine(6);
+  setVars({ lo: 0, hi: arr.length - 1, pivot: practiceState.pivot, i: -1, j: 0 });
   renderCards({ c: [practiceState.pivotIdx] }, { [practiceState.pivotIdx]: 'pivot' });
   setPrompt(`Pivot is <strong>${practiceState.pivot}</strong>. Is A[${practiceState.j}] = ${arr[practiceState.j]} ≤ pivot? Click it if YES, or click the <strong>next card →</strong> to skip.`);
   setStatus('');
 }
 
-// ── Linear Search Practice ──
 function initPracticeLinear() {
   practiceState = {
     target: arr[Math.floor(Math.random() * arr.length)],
@@ -852,12 +1001,12 @@ function initPracticeLinear() {
   };
   showSearchTarget(practiceState.target);
   highlightLine(1);
+  setVars({ target: practiceState.target, i: 0 });
   renderCards({}, {});
   setPrompt(`Click the <strong>next card to check</strong> (start from the left).`);
   setStatus('');
 }
 
-// ── Binary Search Practice ──
 function initPracticeBinary() {
   practiceState = {
     target: arr[Math.floor(Math.random() * arr.length)],
@@ -867,6 +1016,7 @@ function initPracticeBinary() {
   };
   showSearchTarget(practiceState.target);
   highlightLine(3);
+  setVars({ target: practiceState.target, lo: 0, hi: arr.length - 1, mid: '?' });
   const dimmed = [];
   for (let x = 0; x < arr.length; x++) { if (x < practiceState.lo || x > practiceState.hi) dimmed.push(x); }
   renderCards({ a: [practiceState.lo], b: [practiceState.hi], dimmed }, { [practiceState.lo]: 'lo', [practiceState.hi]: 'hi' });
@@ -887,7 +1037,6 @@ function practiceClick(idx) {
 function practiceSelectionClick(idx) {
   const s = practiceState;
   if (s.phase === 'find_min') {
-    // Find actual min in unsorted
     let minVal = Infinity, minI = s.pass;
     for (let x = s.pass; x < arr.length; x++) {
       if (arr[x] < minVal) { minVal = arr[x]; minI = x; }
@@ -897,6 +1046,7 @@ function practiceSelectionClick(idx) {
       s.minIdx = minI;
       s.phase = 'swap';
       highlightLine(6);
+      setVars({ n: arr.length, i: s.pass, minIndex: minI, 'A[i]': arr[s.pass], 'A[minIndex]': arr[minI] });
       renderCards({ sorted: s.sorted, a: [s.pass], b: [minI] }, { [s.pass]: 'i', [minI]: 'min' });
       if (s.pass === minI) {
         setPrompt(`Min is already in position! Click it to confirm.`);
@@ -918,12 +1068,14 @@ function practiceSelectionClick(idx) {
       if (s.pass >= arr.length - 1) {
         s.sorted.push(arr.length - 1);
         highlightLine(7);
+        setVars({ n: arr.length, result: 'sorted ✓' });
         renderCards({ sorted: s.sorted }, {});
         setPrompt(null);
         setStatus('<span class="good">✓ Sorting complete! Well done!</span>');
       } else {
         s.phase = 'find_min';
         highlightLine(1);
+        setVars({ n: arr.length, i: s.pass, minIndex: '?', j: '?' });
         renderCards({ sorted: s.sorted }, {});
         setPrompt(`Pass ${s.pass + 1}: Click the <strong>smallest</strong> card in the unsorted portion.`);
         setStatus('');
@@ -944,20 +1096,19 @@ function practiceQuickClick(idx) {
     const isLessThanOrEq = arr[s.j] <= s.pivot;
 
     if (isLessThanOrEq && idx === s.j) {
-      // Correct: they clicked the element to swap
       practiceScore.correct++;
       s.i++;
       [arr[s.i], arr[s.j]] = [arr[s.j], arr[s.i]];
       highlightLine(11);
+      setVars({ lo: s.lo, hi: s.hi, pivot: s.pivot, i: s.i, j: s.j });
       setStatus(`<span class="good">✓ ${arr[s.i]} ≤ ${s.pivot}, swapped into position ${s.i}</span>`);
       s.j++;
     } else if (!isLessThanOrEq && idx === s.j + 1 && s.j + 1 <= s.hi) {
-      // Correct skip by clicking next card
       practiceScore.correct++;
       setStatus(`<span class="good">✓ Correct, ${arr[s.j]} > ${s.pivot}, skip.</span>`);
       s.j++;
+      setVars({ lo: s.lo, hi: s.hi, pivot: s.pivot, i: s.i, j: s.j });
     } else if (!isLessThanOrEq && idx === s.j) {
-      // They clicked current but should skip
       practiceScore.wrong++;
       flashWrong(idx);
       setStatus(`<span class="bad">${arr[s.j]} > ${s.pivot} — skip this one! Click the next card →</span>`);
@@ -974,9 +1125,9 @@ function practiceQuickClick(idx) {
     showScore();
 
     if (s.j >= s.hi) {
-      // Partition complete, place pivot
       s.phase = 'place_pivot';
       highlightLine(12);
+      setVars({ lo: s.lo, hi: s.hi, pivot: s.pivot, i: s.i, 'i+1': s.i + 1 });
       renderCards({
         c: [s.hi],
         a: s.i + 1 !== s.hi ? [s.i + 1] : [],
@@ -996,7 +1147,6 @@ function practiceQuickClick(idx) {
       [arr[pivotDest], arr[s.hi]] = [arr[s.hi], arr[pivotDest]];
       s.sorted.add(pivotDest);
 
-      // Push sub-arrays
       const newStack = [];
       if (s.lo < pivotDest - 1) newStack.push({ lo: s.lo, hi: pivotDest - 1 });
       else if (s.lo === pivotDest - 1) s.sorted.add(s.lo);
@@ -1009,13 +1159,13 @@ function practiceQuickClick(idx) {
       if (s.stack.length === 0) {
         for (let x = 0; x < arr.length; x++) s.sorted.add(x);
         renderCards({ sorted: [...s.sorted] }, {});
+        setVars({ result: 'sorted ✓' });
         setPrompt(null);
         setStatus('<span class="good">✓ Sorting complete! Well done!</span>');
         showScore();
         return;
       }
 
-      // Next partition
       const next = s.stack[0];
       s.lo = next.lo;
       s.hi = next.hi;
@@ -1026,6 +1176,7 @@ function practiceQuickClick(idx) {
       s.phase = 'pick_compare';
 
       highlightLine(6);
+      setVars({ lo: s.lo, hi: s.hi, pivot: s.pivot, i: s.i, j: s.j });
       renderCards({ c: [s.pivotIdx], sorted: [...s.sorted] }, { [s.pivotIdx]: 'pivot' });
       setPrompt(`New partition [${s.lo}..${s.hi}]. Pivot = <strong>${s.pivot}</strong>. Is A[${s.j}] = ${arr[s.j]} ≤ pivot?`);
     } else {
@@ -1042,8 +1193,10 @@ function practiceLinearClick(idx) {
   if (idx === s.currentIdx) {
     practiceScore.correct++;
     highlightLine(2);
+    setVars({ target: s.target, i: idx, 'A[i]': arr[idx] });
     if (arr[idx] === s.target) {
       highlightLine(3);
+      setVars({ target: s.target, i: idx, 'A[i]': arr[idx], result: `found @ ${idx}` });
       renderCards({ found: [idx] }, {});
       setPrompt(null);
       setStatus(`<span class="good">✓ Found ${s.target} at index ${idx}!</span>`);
@@ -1053,10 +1206,12 @@ function practiceLinearClick(idx) {
       s.currentIdx++;
       if (s.currentIdx >= arr.length) {
         highlightLine(4);
+        setVars({ target: s.target, result: 'not found (−1)' });
         renderCards({}, {});
         setPrompt(null);
         setStatus(`<span class="bad">Reached the end — ${s.target} not found.</span>`);
       } else {
+        setVars({ target: s.target, i: s.currentIdx });
         setPrompt(`Click the <strong>next card</strong> (index ${s.currentIdx}).`);
       }
     }
@@ -1075,8 +1230,10 @@ function practiceBinaryClick(idx) {
     if (idx === expectedMid) {
       practiceScore.correct++;
       highlightLine(5);
+      setVars({ target: s.target, lo: s.lo, hi: s.hi, mid: expectedMid, 'A[mid]': arr[expectedMid] });
       if (arr[idx] === s.target) {
         highlightLine(6);
+        setVars({ target: s.target, lo: s.lo, hi: s.hi, mid: expectedMid, 'A[mid]': arr[expectedMid], result: `found @ ${idx}` });
         renderCards({ found: [idx] }, {});
         setPrompt(null);
         setStatus(`<span class="good">✓ Found ${s.target} at index ${idx}!</span>`);
@@ -1118,10 +1275,12 @@ function practiceBinaryClick(idx) {
 
       if (s.lo > s.hi) {
         highlightLine(11);
+        setVars({ target: s.target, lo: s.lo, hi: s.hi, result: 'not found (−1)' });
         renderCards({}, {});
         setPrompt(null);
         setStatus(`<span class="bad">${s.target} not found — lo > hi.</span>`);
       } else {
+        setVars({ target: s.target, lo: s.lo, hi: s.hi, mid: '?' });
         const dimmed = [];
         for (let x = 0; x < arr.length; x++) { if (x < s.lo || x > s.hi) dimmed.push(x); }
         renderCards({ a: [s.lo], b: [s.hi], dimmed }, { [s.lo]: 'lo', [s.hi]: 'hi' });
@@ -1156,6 +1315,7 @@ function init() {
     generateArray();
     renderPseudocode();
     highlightLine(null);
+    clearVars();
     renderCards({});
     showSearchTarget(null);
     setStatus('Press "Run" to start the animation.');
@@ -1228,6 +1388,13 @@ document.querySelectorAll('.mode-btn').forEach(btn => {
 
 // Speed
 $('speedSlider').addEventListener('input', e => { speed = parseInt(e.target.value); });
+
+// Size
+$('sizeSlider').addEventListener('input', e => {
+  arraySize = parseInt(e.target.value);
+  $('sizeVal').textContent = arraySize;
+  init();
+});
 
 // Boot
 init();
