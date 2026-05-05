@@ -318,6 +318,43 @@ body {
 .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
 .modal-err { color: var(--danger); font-size: 13px; min-height: 16px; }
 
+/* ── INSTRUCTIONS ── */
+.instructions {
+  background: var(--cell-bg); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 18px;
+  margin-bottom: 14px; box-shadow: var(--shadow);
+  font-size: 13px; color: var(--text);
+}
+.instructions-header {
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; user-select: none;
+}
+.instructions-title {
+  font-family: var(--font-head); font-size: 12px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted);
+  display: flex; align-items: center; gap: 7px;
+}
+.instructions-body {
+  margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px 32px;
+}
+.instructions-body.hidden { display: none; }
+.instr-section-title {
+  font-size: 11px; font-weight: 500; text-transform: uppercase;
+  letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 6px;
+}
+.instr-list { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.instr-list li { display: flex; gap: 10px; align-items: baseline; line-height: 1.45; }
+.instr-num {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  color: var(--accent); flex-shrink: 0; min-width: 14px;
+}
+.instr-note {
+  margin-top: 10px; padding: 7px 10px; grid-column: 1 / -1;
+  background: #fff8f3; border: 1px solid #f5dece;
+  border-radius: var(--radius); font-size: 12px; color: var(--text-muted); line-height: 1.5;
+}
+.instr-note strong { color: var(--accent); font-weight: 500; }
+
 /* ── KEYBOARD HINT ── */
 .kbd {
   font-family: var(--font-mono); font-size: 10px;
@@ -332,19 +369,46 @@ body {
   <div class="app-title">Rubric <span>Editor</span></div>
   <div class="header-actions">
     <button class="btn btn-ghost" id="btn-load">↑ Load JSON</button>
-    <button class="btn btn-ghost" id="btn-copy-json">⎘ Copy JSON</button>
     <button class="btn btn-primary" id="btn-export">↓ Export JSON</button>
   </div>
 </div>
 
 <div class="main">
+  <div class="instructions" id="instructions">
+    <div class="instructions-header" id="instr-toggle">
+      <span class="instructions-title">
+        <span class="stoggle-arrow" id="instr-arrow">▶</span> How to use
+      </span>
+    </div>
+    <div class="instructions-body hidden" id="instr-body">
+      <div>
+        <div class="instr-section-title">Building the rubric</div>
+        <ol class="instr-list">
+          <li><span class="instr-num">1.</span><span>Fill in the rubric name and any criteria. Click a criterion or achievement level name to edit it in place.</span></li>
+          <li><span class="instr-num">2.</span><span>Type descriptors in the cells. Press <kbd class="kbd">Enter</kbd> to add a new bullet/element, or use the <em>+ bullet</em> button.</span></li>
+          <li><span class="instr-num">3.</span><span>Press <kbd class="kbd">Tab</kbd> to move to the next achievement level. <kbd class="kbd">Shift+Tab</kbd> moves back.</span></li>
+          <li><span class="instr-num">4.</span><span>To copy a cell across levels, hover the cell and click <em>Copy</em>, then click <em>Paste</em> on the target — or use <kbd class="kbd">⌘⇧C</kbd> / <kbd class="kbd">⌘⇧V</kbd> (Ctrl on Windows) with a cell focused.</span></li>
+        </ol>
+      </div>
+      <div>
+        <div class="instr-section-title">Importing into Compass</div>
+        <ol class="instr-list">
+          <li><span class="instr-num">1.</span><span>Click <strong>↓ Export JSON</strong> and save the downloaded file.</span></li>
+          <li><span class="instr-num">2.</span><span>In Compass: <strong>School Resources → Subject folder → Add Content → Import Rubric</strong>.</span></li>
+          <li><span class="instr-num">3.</span><span>Select the downloaded file and test the rubric before use.</span></li>
+        </ol>
+        <div class="instr-section-title" style="margin-top:12px">Saving your work</div>
+        <ol class="instr-list">
+          <li><span class="instr-num">1.</span><span>This editor does not save automatically. To preserve a draft, click <strong>↓ Export JSON</strong> and keep the file.</span></li>
+          <li><span class="instr-num">2.</span><span>To resume later, click <strong>↑ Load JSON</strong> and paste or select the saved file.</span></li>
+        </ol>
+      </div>
+      <div class="instr-note"><strong>Note:</strong> progress will be lost if you close or refresh the page without exporting first.</div>
+    </div>
+  </div>
   <div id="meta-container"></div>
   <div id="levels-container"></div>
   <div id="grid-container"></div>
-  <p style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:6px">
-    Cell copy/paste: <kbd class="kbd">⌘⇧C</kbd> / <kbd class="kbd">⌘⇧V</kbd> (or Ctrl on Windows)
-    — click a cell first to focus it.
-  </p>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -983,11 +1047,6 @@ q('btn-export').addEventListener('click', () => {
   a.click();
 });
 
-q('btn-copy-json').addEventListener('click', () => {
-  navigator.clipboard.writeText(JSON.stringify(buildJSON(), null, 2))
-    .then(() => toast('JSON copied to clipboard'));
-});
-
 q('btn-load').addEventListener('click', () => {
   q('load-ta').value = '';
   q('load-err').textContent = '';
@@ -1014,6 +1073,14 @@ q('load-modal').addEventListener('click', e => {
 // ──────────────────────────────────────────────────────────────
 // INIT
 // ──────────────────────────────────────────────────────────────
+
+q('instr-toggle').addEventListener('click', () => {
+  const body = q('instr-body');
+  const arrow = q('instr-arrow');
+  const open = !body.classList.contains('hidden');
+  body.classList.toggle('hidden', open);
+  arrow.classList.toggle('open', !open);
+});
 
 render();
 </script>
