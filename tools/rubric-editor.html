@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rubric Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f8f7f4;
+  --header-bg: #1c2233;
+  --header-text: #e8e4dc;
+  --accent: #d4580a;
+  --accent-light: #faeade;
+  --text: #1a1a1a;
+  --text-muted: #6b6660;
+  --border: #d8d5ce;
+  --cell-bg: #ffffff;
+  --row-label-bg: #f0ede6;
+  --level-header-bg: #e8e5de;
+  --danger: #b91c1c;
+  --font-head: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --radius: 4px;
+  --shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+.app-header {
+  background: var(--header-bg);
+  color: var(--header-text);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+}
+.app-title {
+  font-family: var(--font-head);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+.app-title span { color: var(--accent); }
+.header-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+/* ── BUTTONS ── */
+.btn {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.12s, opacity 0.12s;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover:not(:disabled) { background: #b84c08; }
+.btn-ghost { background: transparent; color: var(--header-text); border-color: rgba(255,255,255,0.2); }
+.btn-ghost:hover:not(:disabled) { background: rgba(255,255,255,0.08); }
+.btn-secondary { background: var(--cell-bg); color: var(--text); border-color: var(--border); }
+.btn-secondary:hover:not(:disabled) { background: var(--bg); }
+.btn-danger { background: transparent; color: var(--danger); border-color: transparent; padding: 3px 7px; font-size: 12px; }
+.btn-danger:hover:not(:disabled) { background: #fee2e2; }
+.btn-icon { background: transparent; color: var(--text-muted); border-color: transparent; padding: 3px 6px; font-size: 12px; line-height: 1; }
+.btn-icon:hover:not(:disabled) { background: var(--level-header-bg); color: var(--text); }
+.btn-sm { font-size: 12px; padding: 3px 9px; }
+.btn-add { background: transparent; color: var(--accent); border: 1px dashed var(--accent); font-size: 12px; padding: 4px 12px; }
+.btn-add:hover:not(:disabled) { background: var(--accent-light); }
+
+/* ── MAIN ── */
+.main { padding: 20px 24px; max-width: 1600px; margin: 0 auto; }
+.section-card {
+  background: var(--cell-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow);
+}
+
+/* ── FORMS ── */
+.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 10px; }
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+.form-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+.form-input {
+  font-family: var(--font-body); font-size: 14px; padding: 7px 10px;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--bg); color: var(--text); width: 100%;
+  transition: border-color 0.12s;
+}
+.form-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(212,88,10,0.12); }
+
+/* ── SETTINGS ── */
+.settings-toggle {
+  display: inline-flex; align-items: center; gap: 7px;
+  cursor: pointer; user-select: none;
+  font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--text-muted); margin-top: 2px;
+}
+.settings-toggle:hover { color: var(--accent); }
+.stoggle-arrow { display: inline-block; transition: transform 0.18s; font-size: 9px; }
+.stoggle-arrow.open { transform: rotate(90deg); }
+.settings-panel {
+  margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border);
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px 20px;
+}
+.settings-panel.hidden { display: none; }
+.check-group { display: flex; align-items: center; gap: 7px; }
+.check-group input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px; cursor: pointer; }
+.check-group label { font-size: 13px; cursor: pointer; user-select: none; }
+.num-group { display: flex; flex-direction: column; gap: 3px; }
+.num-group input[type="number"] {
+  font-family: var(--font-mono); font-size: 13px; padding: 4px 7px;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  width: 72px; background: var(--bg);
+}
+.num-group input:focus { outline: none; border-color: var(--accent); }
+
+/* ── LEVELS BAR ── */
+.levels-bar-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
+}
+.section-label {
+  font-family: var(--font-head); font-size: 12px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.09em; color: var(--text-muted);
+}
+.levels-list { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-start; }
+.level-card {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 10px 12px; min-width: 130px;
+}
+.level-name-input {
+  font-family: var(--font-head); font-size: 16px; font-weight: 700;
+  border: none; border-bottom: 1px dashed rgba(212,88,10,0.35);
+  background: transparent; color: var(--accent); width: 100%;
+  padding: 2px 3px; margin-bottom: 6px; display: block;
+  cursor: text; border-radius: 2px 2px 0 0;
+  transition: background 0.12s, border-color 0.12s;
+}
+.level-name-input:hover { background: rgba(212,88,10,0.06); border-bottom-color: var(--accent); }
+.level-name-input:focus { outline: none; background: rgba(212,88,10,0.09); border-bottom: 1px solid var(--accent); }
+.level-pts-row { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+.level-pts-input {
+  font-family: var(--font-mono); font-size: 12px; width: 54px;
+  padding: 2px 5px; border: 1px solid var(--border); border-radius: 2px; background: var(--cell-bg);
+}
+.level-pts-input:focus { outline: none; border-color: var(--accent); }
+.level-footer { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+.level-check { display: flex; align-items: center; gap: 4px; font-size: 11px; cursor: pointer; }
+.level-check input { accent-color: var(--accent); cursor: pointer; }
+.move-btns { display: flex; gap: 2px; }
+
+/* ── GRID ── */
+.grid-section {
+  background: var(--cell-bg); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  overflow: hidden; margin-bottom: 14px;
+}
+.grid-wrap { overflow-x: auto; }
+.grid-table { width: 100%; border-collapse: collapse; }
+.grid-table th, .grid-table td { border: 1px solid var(--border); vertical-align: top; }
+.grid-table th {
+  background: var(--header-bg); color: var(--header-text);
+  font-family: var(--font-head); font-size: 13px; font-weight: 600;
+  letter-spacing: 0.04em; padding: 10px 14px; text-align: center;
+}
+.grid-table th.crit-th {
+  background: var(--level-header-bg); color: var(--text-muted);
+  text-align: left; font-size: 11px; width: 200px; min-width: 200px;
+}
+.grade-th-inner { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.grade-th-name { color: var(--accent); font-size: 15px; }
+.grade-th-pts { font-size: 11px; font-weight: 400; color: rgba(255,255,255,0.55); font-family: var(--font-body); }
+
+/* ── CRITERION LABEL CELL ── */
+.crit-label-cell {
+  background: var(--row-label-bg); padding: 12px 14px;
+  width: 200px; min-width: 200px; vertical-align: top;
+  border-left: 4px solid var(--accent);
+}
+.crit-name-input {
+  font-family: var(--font-body); font-size: 13px; font-weight: 500;
+  width: 100%; border: none; border-bottom: 1px dashed rgba(0,0,0,0.22);
+  background: transparent; color: var(--text);
+  padding: 2px 3px; margin-bottom: 2px; cursor: text;
+  border-radius: 2px 2px 0 0;
+  transition: background 0.12s, border-color 0.12s;
+}
+.crit-name-input:hover { background: rgba(0,0,0,0.05); border-bottom-color: var(--text-muted); }
+.crit-name-input:focus { outline: none; background: rgba(212,88,10,0.06); border-bottom: 1px solid var(--accent); }
+.crit-meta { margin-top: 8px; display: flex; flex-direction: column; gap: 3px; }
+.crit-meta-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+.crit-meta input[type="text"], .crit-meta input[type="number"] {
+  font-family: var(--font-body); font-size: 11px; padding: 2px 6px;
+  border: 1px solid var(--border); border-radius: 2px; width: 100%; background: var(--cell-bg);
+}
+.crit-meta input:focus { outline: none; border-color: var(--accent); }
+.crit-actions { margin-top: 10px; display: flex; gap: 3px; flex-wrap: wrap; }
+
+/* ── DESCRIPTOR CELL ── */
+.desc-cell {
+  padding: 8px 10px; background: var(--cell-bg); min-width: 200px;
+  transition: background 0.15s; position: relative;
+}
+.desc-cell.is-focused {
+  background: #fffcf9; box-shadow: inset 0 0 0 2px var(--accent);
+}
+@keyframes copiedFlash {
+  0%   { background: var(--cell-bg); }
+  25%  { background: #d0f0e4; }
+  100% { background: var(--cell-bg); }
+}
+.desc-cell.was-copied { animation: copiedFlash 0.5s ease forwards; }
+
+.cell-toolbar {
+  display: flex; justify-content: flex-end; align-items: center;
+  gap: 4px; margin-bottom: 5px; opacity: 0; transition: opacity 0.13s;
+}
+.desc-cell:hover .cell-toolbar,
+.desc-cell.is-focused .cell-toolbar { opacity: 1; }
+.cell-toolbar-btn {
+  font-family: var(--font-body); font-size: 11px; padding: 2px 7px;
+  border-radius: 2px; border: 1px solid var(--border);
+  background: var(--bg); color: var(--text-muted); cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+.cell-toolbar-btn:hover:not(:disabled) { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
+.cell-toolbar-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.bullet-list { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.bullet-item { display: flex; align-items: flex-start; gap: 5px; }
+.bullet-dot { color: var(--accent); font-size: 15px; line-height: 1.35; flex-shrink: 0; }
+.bullet-ta {
+  font-family: var(--font-body); font-size: 13px; line-height: 1.45;
+  border: none; background: transparent; color: var(--text);
+  width: 100%; resize: none; padding: 0; overflow: hidden; min-height: 36px;
+}
+.bullet-ta:focus { outline: none; }
+.bullet-rm {
+  background: transparent; border: none; color: var(--text-muted);
+  cursor: pointer; font-size: 13px; line-height: 1; padding: 1px 3px;
+  border-radius: 2px; flex-shrink: 0; opacity: 0; transition: opacity 0.1s;
+}
+.bullet-item:hover .bullet-rm { opacity: 1; }
+.bullet-rm:hover { background: #fee2e2; color: var(--danger); }
+
+.add-bullet-btn {
+  margin-top: 5px; font-size: 11px; color: var(--text-muted);
+  background: transparent; border: none; cursor: pointer;
+  padding: 2px 4px; border-radius: 2px;
+  opacity: 0; transition: opacity 0.13s; display: block;
+}
+.desc-cell:hover .add-bullet-btn,
+.desc-cell.is-focused .add-bullet-btn { opacity: 1; }
+.add-bullet-btn:hover { background: var(--accent-light); color: var(--accent); }
+
+/* ── ADD ROW ── */
+.add-crit-row {
+  padding: 10px 16px; text-align: center;
+  border-top: 1px solid var(--border); background: var(--bg);
+}
+
+/* ── STATUS TOAST ── */
+.toast {
+  position: fixed; bottom: 20px; right: 20px;
+  background: var(--header-bg); color: var(--header-text);
+  padding: 8px 16px; border-radius: var(--radius);
+  font-size: 13px; box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+  opacity: 0; transform: translateY(8px);
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none; z-index: 500;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+  display: flex; align-items: center; justify-content: center; z-index: 400;
+}
+.modal-overlay.hidden { display: none; }
+.modal {
+  background: var(--cell-bg); border-radius: var(--radius); padding: 24px;
+  width: 620px; max-width: 96vw; max-height: 85vh;
+  display: flex; flex-direction: column; gap: 14px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+.modal-title { font-family: var(--font-head); font-size: 17px; font-weight: 700; }
+.modal-hint { font-size: 13px; color: var(--text-muted); }
+.modal-ta {
+  font-family: var(--font-mono); font-size: 12px;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 12px; background: var(--bg); flex: 1;
+  min-height: 220px; resize: vertical; color: var(--text);
+}
+.modal-ta:focus { outline: none; border-color: var(--accent); }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.modal-err { color: var(--danger); font-size: 13px; min-height: 16px; }
+
+/* ── KEYBOARD HINT ── */
+.kbd {
+  font-family: var(--font-mono); font-size: 10px;
+  background: var(--level-header-bg); border: 1px solid var(--border);
+  border-radius: 2px; padding: 0 4px; color: var(--text-muted);
+}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="app-title">Rubric <span>Editor</span></div>
+  <div class="header-actions">
+    <button class="btn btn-ghost" id="btn-load">↑ Load JSON</button>
+    <button class="btn btn-ghost" id="btn-copy-json">⎘ Copy JSON</button>
+    <button class="btn btn-primary" id="btn-export">↓ Export JSON</button>
+  </div>
+</div>
+
+<div class="main">
+  <div id="meta-container"></div>
+  <div id="levels-container"></div>
+  <div id="grid-container"></div>
+  <p style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:6px">
+    Cell copy/paste: <kbd class="kbd">⌘⇧C</kbd> / <kbd class="kbd">⌘⇧V</kbd> (or Ctrl on Windows)
+    — click a cell first to focus it.
+  </p>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-overlay hidden" id="load-modal">
+  <div class="modal">
+    <div class="modal-title">Load JSON</div>
+    <p class="modal-hint">Paste rubric JSON below. Replaces the current rubric.</p>
+    <textarea class="modal-ta" id="load-ta" placeholder="Paste JSON here…"></textarea>
+    <div class="modal-err" id="load-err"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="btn-load-cancel">Cancel</button>
+      <button class="btn btn-primary" id="btn-load-confirm">Load</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ──────────────────────────────────────────────────────────────
+// STATE
+// ──────────────────────────────────────────────────────────────
+
+function newRubric() {
+  return {
+    Name: '',
+    Description: '',
+    HasScores: false,
+    UseScoreRange: false,
+    ShowBulletPoints: true,
+    GradingLayout: 1,
+    StaffAccess: 1,
+    AllowPartialGrading: true,
+    HighlightPrecedingCells: false,
+    ParentStudentAccess: 2,
+    levels: [
+      { Name: 'Not Shown',   Points: 0, IncludeForGrading: true },
+      { Name: 'Below Level', Points: 0, IncludeForGrading: true },
+      { Name: 'At Level',    Points: 0, IncludeForGrading: true },
+      { Name: 'Above Level', Points: 0, IncludeForGrading: true }
+    ],
+    criteria: [
+      makeCriterion('Criterion 1', 4)
+    ]
+  };
+}
+
+function makeCriterion(name, numLevels) {
+  return {
+    Name: name,
+    Description: '',
+    ColumnHeading: 'Criteria',
+    CriterionColor: 1,
+    cells: Array.from({ length: numLevels }, () => ({ descriptors: [''] }))
+  };
+}
+
+const state = {
+  currentIndex: 0,
+  rubrics: [newRubric()],
+  settingsOpen: false,
+  clipboard: null,     // { descriptors: [...] }
+  focusedCell: null    // { ci, li }
+};
+
+const R = () => state.rubrics[state.currentIndex];
+
+// ──────────────────────────────────────────────────────────────
+// EXPORT / IMPORT
+// ──────────────────────────────────────────────────────────────
+
+function buildJSON() {
+  const r = R();
+  return {
+    Rubrics: [{
+      Name: r.Name,
+      Description: r.Description,
+      HasScores: r.HasScores,
+      UseScoreRange: r.UseScoreRange,
+      ShowBulletPoints: r.ShowBulletPoints,
+      GradingLayout: r.GradingLayout,
+      StaffAccess: r.StaffAccess,
+      AllowPartialGrading: r.AllowPartialGrading,
+      HighlightPrecedingCells: r.HighlightPrecedingCells,
+      ParentStudentAccess: r.ParentStudentAccess,
+      Criteria: r.criteria.map((crit, ci) => ({
+        Name: crit.Name,
+        Description: crit.Description,
+        Ordinal: ci + 1,
+        ColumnHeading: crit.ColumnHeading,
+        CriterionColor: crit.CriterionColor,
+        GradingScales: r.levels.map((lvl, li) => {
+          const cell = crit.cells[li] || { descriptors: [''] };
+          const descriptors = cell.descriptors.filter(d => d.trim() !== '');
+          return {
+            Name: lvl.Name,
+            Points: lvl.Points,
+            Ordinal: li + 1,
+            Score: lvl.Points,
+            IncludeForGrading: lvl.IncludeForGrading,
+            ContentDescriptors: descriptors.map((d, di) => ({ Description: d, Ordinal: di + 1 }))
+          };
+        })
+      }))
+    }]
+  };
+}
+
+function importJSON(jsonStr) {
+  const data = JSON.parse(jsonStr);
+  const src = data.Rubrics[0];
+  const firstCrit = src.Criteria[0];
+  const levels = firstCrit
+    ? firstCrit.GradingScales.map(gs => ({
+        Name: gs.Name,
+        Points: gs.Points,
+        IncludeForGrading: gs.IncludeForGrading
+      }))
+    : [];
+
+  const criteria = src.Criteria.map(crit => ({
+    Name: crit.Name,
+    Description: crit.Description || '',
+    ColumnHeading: crit.ColumnHeading || 'Criteria',
+    CriterionColor: crit.CriterionColor || 1,
+    cells: crit.GradingScales.map(gs => ({
+      descriptors: gs.ContentDescriptors.length > 0
+        ? gs.ContentDescriptors.map(cd => cd.Description)
+        : ['']
+    }))
+  }));
+
+  state.rubrics[state.currentIndex] = {
+    Name: src.Name || '',
+    Description: src.Description || '',
+    HasScores:               src.HasScores               ?? true,
+    UseScoreRange:           src.UseScoreRange            ?? false,
+    ShowBulletPoints:        src.ShowBulletPoints         ?? true,
+    GradingLayout:           src.GradingLayout            ?? 1,
+    StaffAccess:             src.StaffAccess              ?? 1,
+    AllowPartialGrading:     src.AllowPartialGrading      ?? false,
+    HighlightPrecedingCells: src.HighlightPrecedingCells  ?? false,
+    ParentStudentAccess:     src.ParentStudentAccess      ?? 2,
+    levels,
+    criteria
+  };
+}
+
+// ──────────────────────────────────────────────────────────────
+// RENDER
+// ──────────────────────────────────────────────────────────────
+
+function render() {
+  renderMeta();
+  renderLevels();
+  renderGrid();
+}
+
+// ── Meta ──
+function renderMeta() {
+  const r = R();
+  document.getElementById('meta-container').innerHTML = `
+    <div class="section-card">
+      <div class="row-2">
+        <div class="form-group">
+          <label class="form-label">Rubric Name</label>
+          <input class="form-input" id="f-name" type="text" value="${x(r.Name)}" placeholder="e.g. Biology Stage 2 Investigation">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <input class="form-input" id="f-desc" type="text" value="${x(r.Description)}" placeholder="Brief description">
+        </div>
+      </div>
+      <div class="settings-toggle" id="settings-toggle">
+        <span class="stoggle-arrow ${state.settingsOpen ? 'open' : ''}">▶</span> Settings
+      </div>
+      <div class="settings-panel ${state.settingsOpen ? '' : 'hidden'}" id="settings-panel">
+        <div class="check-group">
+          <input type="checkbox" id="s-hasScores" ${r.HasScores ? 'checked' : ''}>
+          <label for="s-hasScores">HasScores</label>
+        </div>
+        <div class="check-group">
+          <input type="checkbox" id="s-useScoreRange" ${r.UseScoreRange ? 'checked' : ''}>
+          <label for="s-useScoreRange">UseScoreRange</label>
+        </div>
+        <div class="check-group">
+          <input type="checkbox" id="s-showBullets" ${r.ShowBulletPoints ? 'checked' : ''}>
+          <label for="s-showBullets">ShowBulletPoints</label>
+        </div>
+        <div class="check-group">
+          <input type="checkbox" id="s-allowPartial" ${r.AllowPartialGrading ? 'checked' : ''}>
+          <label for="s-allowPartial">AllowPartialGrading</label>
+        </div>
+        <div class="check-group">
+          <input type="checkbox" id="s-hlPreceding" ${r.HighlightPrecedingCells ? 'checked' : ''}>
+          <label for="s-hlPreceding">HighlightPrecedingCells</label>
+        </div>
+        <div class="num-group">
+          <label class="form-label">GradingLayout</label>
+          <input type="number" id="s-gradingLayout" value="${r.GradingLayout}" min="0">
+        </div>
+        <div class="num-group">
+          <label class="form-label">StaffAccess</label>
+          <input type="number" id="s-staffAccess" value="${r.StaffAccess}" min="0">
+        </div>
+        <div class="num-group">
+          <label class="form-label">ParentStudentAccess</label>
+          <input type="number" id="s-parentAccess" value="${r.ParentStudentAccess}" min="0">
+        </div>
+      </div>
+    </div>
+  `;
+
+  q('f-name').addEventListener('input', e => { R().Name = e.target.value; });
+  q('f-desc').addEventListener('input', e => { R().Description = e.target.value; });
+  q('settings-toggle').addEventListener('click', () => {
+    state.settingsOpen = !state.settingsOpen;
+    document.querySelector('.stoggle-arrow').classList.toggle('open', state.settingsOpen);
+    q('settings-panel').classList.toggle('hidden', !state.settingsOpen);
+  });
+
+  const checks = { 's-useScoreRange': 'UseScoreRange', 's-allowPartial': 'AllowPartialGrading', 's-hlPreceding': 'HighlightPrecedingCells' };
+  for (const [id, key] of Object.entries(checks)) q(id).addEventListener('change', e => { R()[key] = e.target.checked; });
+  q('s-hasScores').addEventListener('change', e => { R().HasScores = e.target.checked; renderLevels(); });
+  q('s-showBullets').addEventListener('change', e => { R().ShowBulletPoints = e.target.checked; renderGrid(); });
+
+  const nums = { 's-gradingLayout': 'GradingLayout', 's-staffAccess': 'StaffAccess', 's-parentAccess': 'ParentStudentAccess' };
+  for (const [id, key] of Object.entries(nums)) q(id).addEventListener('input', e => { R()[key] = parseInt(e.target.value) || 0; });
+}
+
+// ── Levels ──
+function renderLevels() {
+  const r = R();
+  document.getElementById('levels-container').innerHTML = `
+    <div class="section-card">
+      <div class="levels-bar-header">
+        <span class="section-label">Achievement Levels</span>
+        <button class="btn btn-add btn-sm" id="btn-add-level">+ Add Level</button>
+      </div>
+      <div class="levels-list">
+        ${r.levels.map((lvl, li) => `
+          <div class="level-card">
+            <input class="level-name-input lv-name" type="text" data-li="${li}" value="${x(lvl.Name)}" placeholder="Name" title="Click to edit level name">
+            ${r.HasScores ? `
+            <div class="level-pts-row">
+              <span>Pts:</span>
+              <input class="level-pts-input lv-pts" type="number" data-li="${li}" value="${lvl.Points}" min="0">
+            </div>` : ''}
+            <div class="level-footer">
+              <label class="level-check">
+                <input type="checkbox" class="lv-graded" data-li="${li}" ${lvl.IncludeForGrading ? 'checked' : ''}> Graded
+              </label>
+              <div class="move-btns">
+                <button class="btn btn-icon lv-left"   data-li="${li}" title="Move left"  ${li === 0                    ? 'disabled' : ''}>◀</button>
+                <button class="btn btn-icon lv-right"  data-li="${li}" title="Move right" ${li === r.levels.length - 1  ? 'disabled' : ''}>▶</button>
+                <button class="btn btn-danger lv-del"  data-li="${li}" title="Delete"     ${r.levels.length <= 1        ? 'disabled' : ''}>✕</button>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  q('btn-add-level').addEventListener('click', addLevel);
+  on('.lv-name',   'input',  e => { R().levels[n(e)].Name = e.target.value; syncGridHeaders(); });
+  on('.lv-pts',    'input',  e => { R().levels[n(e)].Points = parseFloat(e.target.value) || 0; syncGridHeaders(); });
+  on('.lv-graded', 'change', e => { R().levels[n(e)].IncludeForGrading = e.target.checked; });
+  on('.lv-left',   'click',  e => moveLevel(n(e), -1));
+  on('.lv-right',  'click',  e => moveLevel(n(e),  1));
+  on('.lv-del',    'click',  e => deleteLevel(n(e)));
+}
+
+// ── Grid ──
+function renderGrid() {
+  const r = R();
+  document.getElementById('grid-container').innerHTML = `
+    <div class="grid-section">
+      <div class="grid-wrap">
+        <table class="grid-table">
+          <thead>
+            <tr id="grid-head">
+              <th class="crit-th">Criterion</th>
+              ${r.levels.map(lvl => `
+                <th>
+                  <div class="grade-th-inner">
+                    <span class="grade-th-name">${x(lvl.Name)}</span>
+                    ${r.HasScores ? `<span class="grade-th-pts">${lvl.Points} pts</span>` : ''}
+                  </div>
+                </th>`).join('')}
+            </tr>
+          </thead>
+          <tbody id="grid-body">
+            ${r.criteria.map((crit, ci) => criterionRowHTML(crit, ci)).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div class="add-crit-row">
+        <button class="btn btn-add" id="btn-add-crit">+ Add Criterion</button>
+      </div>
+    </div>
+  `;
+
+  q('btn-add-crit').addEventListener('click', addCriterion);
+  bindCriterionControls();
+  bindCellControls();
+}
+
+function criterionRowHTML(crit, ci) {
+  const r = R();
+  return `
+    <tr data-ci="${ci}">
+      <td class="crit-label-cell">
+        <input class="crit-name-input cr-name" type="text" data-ci="${ci}" value="${x(crit.Name)}" placeholder="Criterion name" title="Click to edit criterion name">
+        <div class="crit-meta">
+          <div class="crit-meta-label">Description</div>
+          <input type="text" class="cr-desc" tabindex="-1" data-ci="${ci}" value="${x(crit.Description)}" placeholder="Optional">
+          <div class="crit-meta-label" style="margin-top:3px">Column Heading</div>
+          <input type="text" class="cr-heading" tabindex="-1" data-ci="${ci}" value="${x(crit.ColumnHeading)}">
+          <div class="crit-meta-label" style="margin-top:3px">Color (number)</div>
+          <input type="number" class="cr-color" tabindex="-1" data-ci="${ci}" value="${crit.CriterionColor}" min="1">
+        </div>
+        <div class="crit-actions">
+          <button class="btn btn-icon cr-up"  tabindex="-1" data-ci="${ci}" title="Move up"   ${ci === 0 ? 'disabled' : ''}>▲</button>
+          <button class="btn btn-icon cr-dn"  tabindex="-1" data-ci="${ci}" title="Move down" ${ci === r.criteria.length - 1 ? 'disabled' : ''}>▼</button>
+          <button class="btn btn-secondary btn-sm cr-dup" tabindex="-1" data-ci="${ci}" title="Duplicate row">⎘ Dup</button>
+          <button class="btn btn-danger btn-sm cr-del"    tabindex="-1" data-ci="${ci}" title="Delete row"   ${r.criteria.length <= 1 ? 'disabled' : ''}>✕</button>
+        </div>
+      </td>
+      ${r.levels.map((_, li) => cellHTML(crit, ci, li)).join('')}
+    </tr>`;
+}
+
+function cellHTML(crit, ci, li) {
+  const cell = crit.cells[li] || { descriptors: [''] };
+  const focused = state.focusedCell && state.focusedCell.ci === ci && state.focusedCell.li === li;
+  return `
+    <td class="desc-cell ${focused ? 'is-focused' : ''}" data-ci="${ci}" data-li="${li}">
+      <div class="cell-toolbar">
+        <button class="cell-toolbar-btn cp-copy" tabindex="-1" data-ci="${ci}" data-li="${li}" title="Copy cell (⌘⇧C)">Copy</button>
+        <button class="cell-toolbar-btn cp-paste" tabindex="-1" data-ci="${ci}" data-li="${li}" title="Paste cell (⌘⇧V)" ${!state.clipboard ? 'disabled' : ''}>Paste</button>
+      </div>
+      <ul class="bullet-list" data-ci="${ci}" data-li="${li}">
+        ${cell.descriptors.map((desc, di) => `
+          <li class="bullet-item" data-di="${di}">
+            ${R().ShowBulletPoints ? '<span class="bullet-dot">•</span>' : ''}
+            <textarea class="bullet-ta bl-ta" data-ci="${ci}" data-li="${li}" data-di="${di}" rows="2" placeholder="Descriptor…">${x(desc)}</textarea>
+            <button class="bullet-rm bl-rm" tabindex="-1" data-ci="${ci}" data-li="${li}" data-di="${di}" title="Remove" ${cell.descriptors.length <= 1 ? 'style="visibility:hidden"' : ''}>✕</button>
+          </li>`).join('')}
+      </ul>
+      <button class="add-bullet-btn bl-add" tabindex="-1" data-ci="${ci}" data-li="${li}">${R().ShowBulletPoints ? '+ bullet' : '+ element'}</button>
+    </td>`;
+}
+
+// ── Sync headers only (no full re-render) ──
+function syncGridHeaders() {
+  const r = R();
+  const ths = document.querySelectorAll('#grid-head th:not(.crit-th)');
+  r.levels.forEach((lvl, li) => {
+    if (ths[li]) ths[li].innerHTML = `
+      <div class="grade-th-inner">
+        <span class="grade-th-name">${x(lvl.Name)}</span>
+        ${r.HasScores ? `<span class="grade-th-pts">${lvl.Points} pts</span>` : ''}
+      </div>`;
+  });
+}
+
+// ──────────────────────────────────────────────────────────────
+// EVENT BINDING
+// ──────────────────────────────────────────────────────────────
+
+function bindCriterionControls() {
+  on('.cr-name',    'input',  e => { R().criteria[n(e, 'ci')].Name          = e.target.value; });
+  on('.cr-desc',    'input',  e => { R().criteria[n(e, 'ci')].Description   = e.target.value; });
+  on('.cr-heading', 'input',  e => { R().criteria[n(e, 'ci')].ColumnHeading = e.target.value; });
+  on('.cr-color',   'input',  e => { R().criteria[n(e, 'ci')].CriterionColor = parseInt(e.target.value) || 1; });
+  on('.cr-up',  'click', e => moveCriterion(n(e, 'ci'), -1));
+  on('.cr-dn',  'click', e => moveCriterion(n(e, 'ci'),  1));
+  on('.cr-dup', 'click', e => dupCriterion(n(e, 'ci')));
+  on('.cr-del', 'click', e => delCriterion(n(e, 'ci')));
+}
+
+function getNextCell(ci, li) {
+  const r = R();
+  if (li + 1 < r.levels.length)   return { ci, li: li + 1 };
+  if (ci + 1 < r.criteria.length) return { ci: ci + 1, li: 0 };
+  return null;
+}
+
+function getPrevCell(ci, li) {
+  const r = R();
+  if (li - 1 >= 0)   return { ci, li: li - 1 };
+  if (ci - 1 >= 0)   return { ci: ci - 1, li: r.levels.length - 1 };
+  return null;
+}
+
+function bindTANavigation(ta) {
+  ta.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const ci = +ta.dataset.ci;
+      const li = +ta.dataset.li;
+      addBullet(ci, li);
+      const newTAs = document.querySelectorAll(`.bl-ta[data-ci="${ci}"][data-li="${li}"]`);
+      if (newTAs.length) newTAs[newTAs.length - 1].focus();
+      return;
+    }
+
+    if (e.key !== 'Tab') return;
+    const ci   = +ta.dataset.ci;
+    const li   = +ta.dataset.li;
+    const di   = +ta.dataset.di;
+    const cell = R().criteria[ci].cells[li];
+
+    if (!e.shiftKey && di === cell.descriptors.length - 1) {
+      // Tab from last bullet in cell → first bullet of next cell
+      const next = getNextCell(ci, li);
+      if (next) {
+        e.preventDefault();
+        const target = document.querySelector(`.bl-ta[data-ci="${next.ci}"][data-li="${next.li}"][data-di="0"]`);
+        if (target) target.focus();
+      }
+    } else if (e.shiftKey && di === 0) {
+      // Shift+Tab from first bullet in cell → last bullet of previous cell
+      const prev = getPrevCell(ci, li);
+      if (prev) {
+        e.preventDefault();
+        const prevTAs = document.querySelectorAll(`.bl-ta[data-ci="${prev.ci}"][data-li="${prev.li}"]`);
+        if (prevTAs.length) prevTAs[prevTAs.length - 1].focus();
+      }
+    }
+    // Otherwise: natural tab between bullets within the same cell
+  });
+}
+
+function bindCellControls() {
+  document.querySelectorAll('.bl-ta').forEach(ta => {
+    autoH(ta);
+    ta.addEventListener('input', e => {
+      const ci = n(e, 'ci'), li = n(e, 'li'), di = n(e, 'di');
+      R().criteria[ci].cells[li].descriptors[di] = e.target.value;
+      autoH(e.target);
+    });
+    ta.addEventListener('focus', e => focusCell(n(e, 'ci'), n(e, 'li')));
+    bindTANavigation(ta);
+  });
+
+  on('.bl-rm',  'click', e => removeBullet(n(e, 'ci'), n(e, 'li'), n(e, 'di')));
+  on('.bl-add', 'click', e => addBullet(n(e, 'ci'), n(e, 'li')));
+  on('.cp-copy', 'click', e => copyCell(n(e, 'ci'), n(e, 'li')));
+  on('.cp-paste', 'click', e => { if (state.clipboard) pasteCell(n(e, 'ci'), n(e, 'li')); });
+
+  document.querySelectorAll('.desc-cell').forEach(td => {
+    td.addEventListener('mousedown', () => focusCell(+td.dataset.ci, +td.dataset.li));
+  });
+}
+
+// ──────────────────────────────────────────────────────────────
+// ACTIONS — Levels
+// ──────────────────────────────────────────────────────────────
+
+function addLevel() {
+  R().levels.push({ Name: 'New', Points: 0, IncludeForGrading: true });
+  R().criteria.forEach(c => c.cells.push({ descriptors: [''] }));
+  render();
+}
+
+function deleteLevel(li) {
+  if (R().levels.length <= 1) return;
+  R().levels.splice(li, 1);
+  R().criteria.forEach(c => c.cells.splice(li, 1));
+  render();
+}
+
+function moveLevel(li, dir) {
+  const r = R(), ni = li + dir;
+  if (ni < 0 || ni >= r.levels.length) return;
+  [r.levels[li], r.levels[ni]] = [r.levels[ni], r.levels[li]];
+  r.criteria.forEach(c => { [c.cells[li], c.cells[ni]] = [c.cells[ni], c.cells[li]]; });
+  render();
+}
+
+// ──────────────────────────────────────────────────────────────
+// ACTIONS — Criteria
+// ──────────────────────────────────────────────────────────────
+
+function addCriterion() {
+  const r = R();
+  r.criteria.push(makeCriterion(`Criterion ${r.criteria.length + 1}`, r.levels.length));
+  render();
+}
+
+function delCriterion(ci) {
+  if (R().criteria.length <= 1) return;
+  R().criteria.splice(ci, 1);
+  render();
+}
+
+function moveCriterion(ci, dir) {
+  const r = R(), ni = ci + dir;
+  if (ni < 0 || ni >= r.criteria.length) return;
+  [r.criteria[ci], r.criteria[ni]] = [r.criteria[ni], r.criteria[ci]];
+  render();
+}
+
+function dupCriterion(ci) {
+  const orig = R().criteria[ci];
+  const copy = {
+    Name: orig.Name + ' (copy)',
+    ColumnHeading: orig.ColumnHeading,
+    CriterionColor: orig.CriterionColor,
+    cells: orig.cells.map(cell => ({ descriptors: [...cell.descriptors] }))
+  };
+  R().criteria.splice(ci + 1, 0, copy);
+  render();
+}
+
+// ──────────────────────────────────────────────────────────────
+// ACTIONS — Cells & Bullets
+// ──────────────────────────────────────────────────────────────
+
+function addBullet(ci, li) {
+  R().criteria[ci].cells[li].descriptors.push('');
+  rerenderCell(ci, li);
+}
+
+function removeBullet(ci, li, di) {
+  const cell = R().criteria[ci].cells[li];
+  if (cell.descriptors.length <= 1) return;
+  cell.descriptors.splice(di, 1);
+  rerenderCell(ci, li);
+}
+
+function copyCell(ci, li) {
+  state.clipboard = { descriptors: [...R().criteria[ci].cells[li].descriptors] };
+  const td = cellEl(ci, li);
+  if (td) { td.classList.add('was-copied'); setTimeout(() => td.classList.remove('was-copied'), 600); }
+  toast('Cell copied — paste with ⌘⇧V or the Paste button');
+  // Enable all paste buttons
+  document.querySelectorAll('.cp-paste').forEach(b => { b.disabled = false; });
+}
+
+function pasteCell(ci, li) {
+  if (!state.clipboard) return;
+  R().criteria[ci].cells[li].descriptors = [...state.clipboard.descriptors];
+  rerenderCell(ci, li);
+  toast('Cell pasted');
+}
+
+function focusCell(ci, li) {
+  state.focusedCell = { ci, li };
+  document.querySelectorAll('.desc-cell').forEach(td => {
+    td.classList.toggle('is-focused', +td.dataset.ci === ci && +td.dataset.li === li);
+  });
+}
+
+// Rerender a single cell without full grid re-render
+function rerenderCell(ci, li) {
+  const crit = R().criteria[ci];
+  const td = cellEl(ci, li);
+  if (!td) return;
+  td.outerHTML = cellHTML(crit, ci, li);
+  const newTd = cellEl(ci, li);
+  if (!newTd) return;
+
+  newTd.querySelectorAll('.bl-ta').forEach(ta => {
+    autoH(ta);
+    ta.addEventListener('input', e => {
+      R().criteria[n(e,'ci')].cells[n(e,'li')].descriptors[n(e,'di')] = e.target.value;
+      autoH(e.target);
+    });
+    ta.addEventListener('focus', e => focusCell(n(e,'ci'), n(e,'li')));
+    bindTANavigation(ta);
+  });
+  newTd.querySelectorAll('.bl-rm').forEach(b => b.addEventListener('click', e => removeBullet(n(e,'ci'), n(e,'li'), n(e,'di'))));
+  newTd.querySelector('.bl-add').addEventListener('click', e => addBullet(n(e,'ci'), n(e,'li')));
+  newTd.querySelector('.cp-copy').addEventListener('click', e => copyCell(n(e,'ci'), n(e,'li')));
+  const pasteBtn = newTd.querySelector('.cp-paste');
+  if (!state.clipboard) pasteBtn.disabled = true;
+  pasteBtn.addEventListener('click', e => { if (state.clipboard) pasteCell(n(e,'ci'), n(e,'li')); });
+  newTd.addEventListener('mousedown', () => focusCell(ci, li));
+
+  if (state.focusedCell && state.focusedCell.ci === ci && state.focusedCell.li === li) {
+    newTd.classList.add('is-focused');
+  }
+}
+
+// ──────────────────────────────────────────────────────────────
+// HELPERS
+// ──────────────────────────────────────────────────────────────
+
+function q(id)   { return document.getElementById(id); }
+function cellEl(ci, li) { return document.querySelector(`.desc-cell[data-ci="${ci}"][data-li="${li}"]`); }
+function n(e, key = 'li') { return +e.target.dataset[key]; }
+function on(sel, ev, fn) { document.querySelectorAll(sel).forEach(el => el.addEventListener(ev, fn)); }
+function autoH(ta) { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }
+
+function x(s) {  // HTML-escape for attribute & text contexts
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+let toastTimer = null;
+function toast(msg) {
+  const el = q('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// ──────────────────────────────────────────────────────────────
+// KEYBOARD SHORTCUTS
+// ──────────────────────────────────────────────────────────────
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
+    if (e.key === 'C') {
+      e.preventDefault();
+      if (state.focusedCell) copyCell(state.focusedCell.ci, state.focusedCell.li);
+    }
+    if (e.key === 'V') {
+      e.preventDefault();
+      if (state.focusedCell && state.clipboard) pasteCell(state.focusedCell.ci, state.focusedCell.li);
+    }
+  }
+});
+
+// ──────────────────────────────────────────────────────────────
+// TOOLBAR BUTTONS
+// ──────────────────────────────────────────────────────────────
+
+q('btn-export').addEventListener('click', () => {
+  const json = JSON.stringify(buildJSON(), null, 2);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+  a.download = (R().Name || 'rubric').replace(/[^a-z0-9_\- ]/gi, '_') + '.json';
+  a.click();
+});
+
+q('btn-copy-json').addEventListener('click', () => {
+  navigator.clipboard.writeText(JSON.stringify(buildJSON(), null, 2))
+    .then(() => toast('JSON copied to clipboard'));
+});
+
+q('btn-load').addEventListener('click', () => {
+  q('load-ta').value = '';
+  q('load-err').textContent = '';
+  q('load-modal').classList.remove('hidden');
+});
+
+q('btn-load-cancel').addEventListener('click', () => q('load-modal').classList.add('hidden'));
+
+q('btn-load-confirm').addEventListener('click', () => {
+  try {
+    importJSON(q('load-ta').value.trim());
+    q('load-modal').classList.add('hidden');
+    render();
+    toast('Rubric loaded');
+  } catch (err) {
+    q('load-err').textContent = 'Invalid JSON: ' + err.message;
+  }
+});
+
+q('load-modal').addEventListener('click', e => {
+  if (e.target === q('load-modal')) q('load-modal').classList.add('hidden');
+});
+
+// ──────────────────────────────────────────────────────────────
+// INIT
+// ──────────────────────────────────────────────────────────────
+
+render();
+</script>
+</body>
+</html>
