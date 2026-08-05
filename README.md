@@ -1,65 +1,30 @@
 # mrmatho.github.io
 
-Welcome! This is my GitHub Pages site showcasing various educational projects, interactive tools, and teaching resources.
+Welcome! This repository powers my GitHub Pages site and highlights my public projects, classroom resources, and browser tools.
 
-## 🎮 Interactive Games & Tools
+## 🧰 Tools in this repository
 
-### [Crop Rotation Game](https://github.com/mrmatho/crop)
-A simulation game where players manage crop rotation on multiple fields to maximize food production while maintaining soil fertility. Built with HTML/CSS/JavaScript, playable directly in the browser.
-- **Live Demo**: [Play the game](https://mrmatho.github.io/crop/)
-- **Tech**: HTML, CSS, JavaScript
+- [Algorithm Explorer](https://mrmatho.github.io/tools/algorithm-explorer.html)  
+  Interactive visualizer for sorting and searching algorithms.
+- [Password Cracker Demo](https://mrmatho.github.io/tools/password-cracker.html)  
+  Educational brute-force simulation for password strength concepts.
+- [Rubric Editor](https://mrmatho.github.io/tools/rubric-editor.html)  
+  Browser-based rubric builder for creating and exporting assessment rubrics.
 
-### [CubeFlyer](https://github.com/mrmatho/CubeFlyer)
-A 3D JavaScript game built with Babylon.JS where you fly a cube through obstacles. Created as part of MLH Global Hack Week: GAMES to help introduce developers to Open Source.
-- **Tech**: JavaScript, Babylon.JS
+## 📦 Featured public repositories
 
-## 📚 Teaching & Educational Resources
-
-### [7dt-slides](https://github.com/mrmatho/7dt-slides)
-Teaching site with slides for topics including Micro:bit, Python, and Cybersecurity. Content is authored in Markdown and enhanced with Vue components.
-- **Tech**: Slidev, Vue, Markdown
-
-### [da-slides](https://github.com/mrmatho/da-slides)
-Data Analysis teaching slides built with Slidev. An interactive presentation framework for technical content.
-- **Tech**: Slidev, Vue, CSS
-
-### [sd-slides](https://github.com/mrmatho/sd-slides)
-Software Development teaching slides using Slidev framework. Educational content delivered through interactive presentations.
-- **Tech**: Slidev, Vue
-
-## 🛠️ Development Tools
-
-### [mo_nbs - Marimo Notebooks WASM Builder](https://github.com/mrmatho/mo_nbs)
-A tool for building and deploying Marimo notebooks to WebAssembly, enabling interactive Python notebooks in the browser.
-- **Tech**: Python, Marimo, WASM
-
-### [batchimageresizing-omatic](https://github.com/mrmatho/batchimageresizing-omatic)
-Python tool for batch image resizing operations.
-- **Tech**: Python
-
-## 🎲 Other Projects
-
-### [godot-2d-platformer](https://github.com/mrmatho/godot-2d-platformer)
-A 2D platformer game built with Godot Engine for learning game development.
-- **Tech**: GDScript, Godot
-
-### [spotting_card_game](https://github.com/mrmatho/spotting_card_game)
-Card game implementation in Python.
-- **Tech**: Python
-
-### [st-coffee-roast-tracker](https://github.com/mrmatho/st-coffee-roast-tracker)
-A Streamlit app for tracking coffee roasting sessions and profiles.
-- **Tech**: Python, Streamlit
-
-### [discord_bot_play](https://github.com/mrmatho/discord_bot_play)
-Experiments with creating Discord bots.
-- **Tech**: Python
-
-### [randomised_trialer](https://github.com/mrmatho/randomised_trialer)
-Streamlit apps to run randomised trials for probability demonstrations.
-- **Tech**: Python, Streamlit
+- [shoveler](https://github.com/mrmatho/shoveler) — DuckDB SQL workbench for education.
+- [mo_nbs](https://github.com/mrmatho/mo_nbs) — Marimo notebooks WASM builder.
+- [thonny-html-highlight](https://github.com/mrmatho/thonny-html-highlight) — HTML highlighting utility.
+- [10dt-slides](https://github.com/mrmatho/10dt-slides) — Year 10 Digital Technologies slide deck.
+- [7dt-slides](https://github.com/mrmatho/7dt-slides) — Teaching slides for Digital Technologies topics.
+- [sd-slides](https://github.com/mrmatho/sd-slides) — Software Development teaching resources.
+- [da-slides](https://github.com/mrmatho/da-slides) — Data Analysis teaching resources.
+- [crop](https://github.com/mrmatho/crop) — Crop rotation browser game. ([Live demo](https://mrmatho.github.io/crop/))
+- [CubeFlyer](https://github.com/mrmatho/CubeFlyer) — Babylon.js 3D obstacle game.
+- [st-coffee-roast-tracker](https://github.com/mrmatho/st-coffee-roast-tracker) — Streamlit coffee roast tracker.
 
 ---
 
 ## 📫 Connect
-Find more projects and connect with me on [GitHub](https://github.com/mrmatho)!
+Find more projects on [GitHub](https://github.com/mrmatho?tab=repositories).
