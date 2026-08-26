@@ -317,6 +317,15 @@ body {
 .modal-ta:focus { outline: none; border-color: var(--accent); }
 .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
 .modal-err { color: var(--danger); font-size: 13px; min-height: 16px; }
+.modal-lg { width: 920px; }
+.pasteable-content {
+  background: #fff; color: #000; border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 18px; overflow: auto;
+  max-height: 60vh; font-size: 13px; line-height: 1.4;
+}
+.pasteable-content table { border-collapse: collapse; width: 100%; }
+.pasteable-content th, .pasteable-content td { border: 1px solid #999; padding: 6px 8px; vertical-align: top; text-align: left; }
+.pasteable-content ul { margin: 0; padding-left: 18px; }
 
 /* ── INSTRUCTIONS ── */
 .instructions {
@@ -369,6 +378,7 @@ body {
   <div class="app-title">Rubric <span>Editor</span></div>
   <div class="header-actions">
     <button class="btn btn-ghost" id="btn-load">↑ Load JSON</button>
+    <button class="btn btn-ghost" id="btn-pasteable">⧉ Pasteable Version</button>
     <button class="btn btn-primary" id="btn-export">↓ Export JSON</button>
   </div>
 </div>
@@ -412,6 +422,18 @@ body {
 </div>
 
 <div class="toast" id="toast"></div>
+
+<div class="modal-overlay hidden" id="pasteable-modal">
+  <div class="modal modal-lg">
+    <div class="modal-title">Pasteable Version</div>
+    <p class="modal-hint">A plain, unstyled version of the rubric for pasting into an assessment sheet (e.g. Word). Click <strong>Copy</strong>, or select the text below and copy it manually.</p>
+    <div class="pasteable-content" id="pasteable-content" contenteditable="true"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="btn-pasteable-close">Close</button>
+      <button class="btn btn-primary" id="btn-pasteable-copy">Copy</button>
+    </div>
+  </div>
+</div>
 
 <div class="modal-overlay hidden" id="load-modal">
   <div class="modal">
@@ -514,6 +536,30 @@ function buildJSON() {
       }))
     }]
   };
+}
+
+function buildPasteableHTML() {
+  const r = R();
+  const headerCells = r.levels.map(lvl => {
+    const pts = r.HasScores ? ` (${lvl.Points} pts)` : '';
+    return `<th>${x(lvl.Name)}${pts}</th>`;
+  }).join('');
+
+  const rows = r.criteria.map(crit => {
+    const nameCell = `<td><strong>${x(crit.Name)}</strong>${crit.Description ? `<div>${x(crit.Description)}</div>` : ''}</td>`;
+    const cells = r.levels.map((lvl, li) => {
+      const cell = crit.cells[li] || { descriptors: [''] };
+      const items = cell.descriptors.filter(d => d.trim() !== '');
+      const list = items.length ? `<ul>${items.map(d => `<li>${x(d)}</li>`).join('')}</ul>` : '';
+      return `<td>${list}</td>`;
+    }).join('');
+    return `<tr>${nameCell}${cells}</tr>`;
+  }).join('');
+
+  const title = r.Name ? `<h2>${x(r.Name)}</h2>` : '';
+  const desc = r.Description ? `<p>${x(r.Description)}</p>` : '';
+
+  return `${title}${desc}<table><thead><tr><th></th>${headerCells}</tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 function importJSON(jsonStr) {
@@ -1045,6 +1091,36 @@ q('btn-export').addEventListener('click', () => {
   a.href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
   a.download = (R().Name || 'rubric').replace(/[^a-z0-9_\- ]/gi, '_') + '.json';
   a.click();
+});
+
+q('btn-pasteable').addEventListener('click', () => {
+  q('pasteable-content').innerHTML = buildPasteableHTML();
+  q('pasteable-modal').classList.remove('hidden');
+});
+
+q('btn-pasteable-close').addEventListener('click', () => q('pasteable-modal').classList.add('hidden'));
+
+q('pasteable-modal').addEventListener('click', e => {
+  if (e.target === q('pasteable-modal')) q('pasteable-modal').classList.add('hidden');
+});
+
+q('btn-pasteable-copy').addEventListener('click', async () => {
+  const content = q('pasteable-content');
+  try {
+    const item = new ClipboardItem({
+      'text/html': new Blob([content.innerHTML], { type: 'text/html' }),
+      'text/plain': new Blob([content.innerText], { type: 'text/plain' })
+    });
+    await navigator.clipboard.write([item]);
+    toast('Copied — paste into Word');
+  } catch (err) {
+    const range = document.createRange();
+    range.selectNodeContents(content);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    toast('Selected — press Ctrl+C / Cmd+C to copy');
+  }
 });
 
 q('btn-load').addEventListener('click', () => {
